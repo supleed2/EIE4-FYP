@@ -24,6 +24,8 @@ from litex.soc.cores.led import LedChaser
 from litedram.modules import MT41K64M16, MT41K128M16, MT41K256M16, MT41K512M16
 from litedram.phy import ECP5DDRPHY
 
+from testLED import TestLed
+
 # CRG ---------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):
@@ -188,10 +190,15 @@ class BaseSoC(SoCCore):
             )
 
         # Leds -------------------------------------------------------------------------------------
-        if with_led_chaser:
-            self.leds = LedChaser(
-                pads         = platform.request_all("user_led"),
-                sys_clk_freq = sys_clk_freq)
+        # if with_led_chaser:
+        #     self.leds = LedChaser(
+        #         pads         = platform.request_all("user_led"),
+        #         sys_clk_freq = sys_clk_freq)
+
+        self.leds = TestLed(
+            platform = platform,
+            pads     = platform.request_all("user_led")
+        )
 
 # Build --------------------------------------------------------------------------------------------
 
