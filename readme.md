@@ -2,8 +2,15 @@
 
 ## Project Notes
 
+- [Guide on adding a new core (incomplete)](https://github.com/enjoy-digital/litex/wiki/Add-A-New-Core)
+  - [Using LiteEth on ECP5](https://github.com/enjoy-digital/liteeth/issues/66)
+  - [Adding HW modules](https://github.com/enjoy-digital/litex/issues/746), lots more info in issue
+    - Possible useful info in [soc.py](litex/litex/soc/integration/soc.py), Lines 1311 - 2106
+    - Also [generic_platform.py](litex/litex/build/generic_platform.py), Lines 324 - 522
+
 ### Useful links
 
+- [Migen (base for litex) GitHub Repository](https://github.com/m-labs/migen)
 - [Litex Wiki: reusing SV or other cores](https://github.com/enjoy-digital/litex/wiki/Reuse-a-(System)Verilog,-VHDL,-(n)Migen,-Spinal-HDL,-Chisel-core)
 - [Litex for Hardware Engineers](https://github.com/enjoy-digital/litex/wiki/LiteX-for-Hardware-Engineers)
 - [Example of RTOS on LiteX](https://numato.com/kb/running-zephyr-rtos-on-mimas-a7-using-litex-and-risc-v/)
@@ -13,6 +20,7 @@
 - [VexRiscV Source](https://github.com/SpinalHDL/VexRiscv)
 - [Summon FPGA Tools Repo](https://github.com/open-tool-forge/summon-fpga-tools)
 - [Broken Flag issue when building litex](https://github.com/enjoy-digital/litex/issues/825)
+- [On-board DAC Datasheet](https://www.ti.com/product/PCM1780)
 
 ### Possible reference links
 
