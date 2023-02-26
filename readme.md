@@ -2,14 +2,16 @@
 
 ## Project Notes
 
+### Useful links
+
 - [Guide on adding a new core (incomplete)](https://github.com/enjoy-digital/litex/wiki/Add-A-New-Core)
   - [Using LiteEth on ECP5](https://github.com/enjoy-digital/liteeth/issues/66)
   - [Adding HW modules](https://github.com/enjoy-digital/litex/issues/746), lots more info in issue
     - Possible useful info in [soc.py](litex/litex/soc/integration/soc.py), Lines 1311 - 2106
     - Also [generic_platform.py](litex/litex/build/generic_platform.py), Lines 324 - 522
-
-### Useful links
-
+  - [Migen Guide](https://m-labs.hk/migen/manual/fhdl.html)
+  - [LiteX SPI Core](https://github.com/litex-hub/litespi)
+  - [FoMu Example of using external Verilog](https://github.com/im-tomu/foboot/blob/c7ee25b3d10dba0c1df67e793c4e2585577e7a39/hw/foboot-bitstream.py#L507-L537)
 - [Migen (base for litex) GitHub Repository](https://github.com/m-labs/migen)
 - [Litex Wiki: reusing SV or other cores](https://github.com/enjoy-digital/litex/wiki/Reuse-a-(System)Verilog,-VHDL,-(n)Migen,-Spinal-HDL,-Chisel-core)
 - [Litex for Hardware Engineers](https://github.com/enjoy-digital/litex/wiki/LiteX-for-Hardware-Engineers)
