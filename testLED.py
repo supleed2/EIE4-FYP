@@ -9,12 +9,15 @@ class TestLed(Module, AutoCSR):
     def __init__(self, platform, pads):
         self.pads     = pads
         leds   = Signal(3)
+
+        # # #
+
         self.comb += pads.eq(leds)
         self.specials += Instance("flip",
-            i_clk = ClockSignal(),
-            o_ledr = leds[0],
-            o_ledg = leds[1],
-            o_ledb = leds[2]
+            i_i_clk = ClockSignal("dac"),
+            o_o_ledr = leds[0],
+            o_o_ledg = leds[1],
+            o_o_ledb = leds[2]
         )
         platform.add_source("rtl/flip.sv")
 
