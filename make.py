@@ -16,6 +16,8 @@ from litex.gen import LiteXModule
 
 from litex_boards.platforms import gsd_orangecrab
 
+from litex.build.generic_platform import IOStandard, Subsignal, Pins, Misc
+
 from litex.soc.cores.clock import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
@@ -25,6 +27,7 @@ from litedram.modules import MT41K64M16, MT41K128M16, MT41K256M16, MT41K512M16
 from litedram.phy import ECP5DDRPHY
 
 from testLED import TestLed
+from testRGB import TestRgb
 
 # CRG ---------------------------------------------------------------------------------------------
 
@@ -81,6 +84,7 @@ class _CRGSDRAM(LiteXModule):
         self.cd_sys      = ClockDomain()
         self.cd_sys2x    = ClockDomain()
         self.cd_sys2x_i  = ClockDomain()
+        self.cd_dac      = ClockDomain() # Custom clock domain for PCM1780 DAC
 
         # # #
 
@@ -106,6 +110,7 @@ class _CRGSDRAM(LiteXModule):
         pll.register_clkin(clk48, 48e6)
         pll.create_clkout(self.cd_sys2x_i, 2*sys_clk_freq)
         pll.create_clkout(self.cd_init, 24e6)
+        pll.create_clkout(self.cd_dac, 36.864e6) # Create 36.864 MHz Clock for PCM1780 (48kHz fs * 768 as in datasheet)
         self.specials += [
             Instance("ECLKBRIDGECS",
                 i_CLK0   = self.cd_sys2x_i.clk,
@@ -190,15 +195,33 @@ class BaseSoC(SoCCore):
             )
 
         # Leds -------------------------------------------------------------------------------------
-        # if with_led_chaser:
-        #     self.leds = LedChaser(
-        #         pads         = platform.request_all("user_led"),
-        #         sys_clk_freq = sys_clk_freq)
+        if with_led_chaser:
+            # self.leds = LedChaser(
+            #     pads         = platform.request_all("user_led"),
+            #     sys_clk_freq = sys_clk_freq)
+            # platform.clock_domains.cd_testing = ClockDomain()
+            self.leds = TestLed(
+                platform = platform,
+                pads     = platform.request_all("user_led")
+            )
+            # self.leds = TestRgb(
+            #     platform = platform,
+            #     pads     = platform.request_all("user_led")
+            # )
 
-        self.leds = TestLed(
-            platform = platform,
-            pads     = platform.request_all("user_led")
-        )
+        # GPIO Pins --------------------------------------------------------------------------------
+        platform.add_extension([
+            ("gpio", 0, Pins("GPIO:0 GPIO:1 GPIO:5 GPIO:6 GPIO:9 GPIO:10 GPIO:11 GPIO:12 GPIO:13  GPIO:18 GPIO:19 GPIO:20 GPIO:21"),
+                IOStandard("LVCMOS33"), Misc("PULLMODE=DOWN")),
+            ("analog", 0,
+                Subsignal("mux", Pins("F4 F3 F2 H1")),
+                Subsignal("enable", Pins("F1")),
+                Subsignal("ctrl", Pins("G1")),
+                Subsignal("sense_p", Pins("H3"), IOStandard("LVCMOS33D")),
+                Subsignal("sense_n", Pins("G3")),
+                IOStandard("LVCMOS33")
+            )
+        ])
 
 # Build --------------------------------------------------------------------------------------------
 
