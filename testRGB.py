@@ -13,7 +13,7 @@ class TestRgb(Module, AutoCSR, ModuleDoc):
     """
     def __init__(self, platform, pads):
         self.pads = pads
-        self._out = CSRStorage(size = 24, reset = 11206472, description="Led Output(s) Value (24-bit RGB)",
+        self._out = CSRStorage(size = 24, description="Led Output(s) Value (24-bit RGB)",
         fields = [
             CSRField("ledb", size = 8, description = "LED Blue Brightness"),
             CSRField("ledg", size = 8, description = "LED Green Brightness"),
