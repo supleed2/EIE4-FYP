@@ -25,6 +25,14 @@
 - [Broken Flag issue when building litex](https://github.com/enjoy-digital/litex/issues/825)
 - [On-board DAC Datasheet](https://www.ti.com/product/PCM1780)
 
+### Cool Things To Note
+
+- `python -m litex.tools.litex_read_verilog ./rtl/flipPwm.sv` allows for auto-gen of the LiteX `Class` needed to create an instance, however it does not set up the `CSRStorage`.
+- [Load Application Code To CPU](https://github.com/enjoy-digital/litex/wiki/Load-Application-Code-To-CPU)
+- [Use LiteScope To Debug A SoC](https://github.com/enjoy-digital/litex/wiki/Use-LiteScope-To-Debug-A-SoC)
+- [Use GDB with VexRiscv CPU](https://github.com/enjoy-digital/litex/wiki/Use-GDB-with-VexRiscv-CPU)
+- [Run Zephyr On Your SoC](https://github.com/enjoy-digital/litex/wiki/Run-Zephyr-On-Your-SoC)
+
 ### Possible reference links
 
 - [OrangeCrab FPGA Product Page](https://www.latticesemi.com/products/developmentboardsandkits/orangecrab)
