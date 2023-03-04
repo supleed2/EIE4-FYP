@@ -211,14 +211,17 @@ class BaseSoC(SoCCore):
 
         # GPIO Pins --------------------------------------------------------------------------------
         platform.add_extension([
-            ("gpio", 0, Pins("GPIO:0 GPIO:1 GPIO:5 GPIO:6 GPIO:9 GPIO:10 GPIO:11 GPIO:12 GPIO:13  GPIO:18 GPIO:19 GPIO:20 GPIO:21"),
-                IOStandard("LVCMOS33"), Misc("PULLMODE=DOWN")),
-            ("analog", 0,
-                Subsignal("mux", Pins("F4 F3 F2 H1")),
-                Subsignal("enable", Pins("F1")),
-                Subsignal("ctrl", Pins("G1")),
-                Subsignal("sense_p", Pins("H3"), IOStandard("LVCMOS33D")),
-                Subsignal("sense_n", Pins("G3")),
+            ("dac_pcm", 0,
+                Subsignal("sck", Pins("G4")),
+                Subsignal("bck", Pins("N17")),
+                Subsignal("lrck", Pins("M18")),
+                Subsignal("data", Pins("T17")),
+                IOStandard("LVCMOS33")
+            ),
+            ("dac_ctrl", 0,
+                Subsignal("ms", Pins("N15")),
+                Subsignal("mc", Pins("R17")),
+                Subsignal("md", Pins("N16")),
                 IOStandard("LVCMOS33")
             )
         ])
