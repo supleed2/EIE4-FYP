@@ -24,6 +24,14 @@
 - [Summon FPGA Tools Repo](https://github.com/open-tool-forge/summon-fpga-tools)
 - [Broken Flag issue when building litex](https://github.com/enjoy-digital/litex/issues/825)
 - [On-board DAC Datasheet](https://www.ti.com/product/PCM1780)
+- Definitely reference when talking about sending PCM data from the 48MHz RISC-V domain to the ~38MHz DAC domain
+  - [CDC Design Techniques - Sunburst Design](http://www.sunburst-design.com/papers/CummingsSNUG2008Boston_CDC.pdf)
+  - [Async FIFO Design - Sunburst Design](http://www.sunburst-design.com/papers/CummingsSNUG2002SJ_FIFO1.pdf)
+  - [Dual-Clock Async FIFO in SV - Verilog Pro](https://www.verilogpro.com/asynchronous-fifo-design/)
+  - [CDC Design 3 Part Series - Verilog Pro](https://www.verilogpro.com/clock-domain-crossing-part-1/)
+  - [CDC with an Async FIFO - ZipCPU](https://zipcpu.com/blog/2018/07/06/afifo.html)
+  - [CDC with an FPGA - NandLand](https://nandland.com/lesson-14-crossing-clock-domains/)
+  - [CDC using FIFOs example using UART](https://www.mehmetburakaykenar.com/clock-domain-crossing-cdc-using-fifos-high-speed-uart-transciever-example/140/)
 
 ### Cool Things To Note
 
