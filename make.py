@@ -196,14 +196,13 @@ class BaseSoC(SoCCore):
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:
-            # self.leds = LedChaser(
-            #     pads         = platform.request_all("user_led"),
-            #     sys_clk_freq = sys_clk_freq)
-            # platform.clock_domains.cd_testing = ClockDomain()
-            self.leds = TestLed(
-                platform = platform,
-                pads     = platform.request_all("user_led")
-            )
+            self.leds = LedChaser(
+                pads         = platform.request_all("user_led"),
+                sys_clk_freq = sys_clk_freq)
+            # self.leds = TestLed(
+            #     platform = platform,
+            #     pads     = platform.request_all("user_led")
+            # )
             # self.leds = TestRgb(
             #     platform = platform,
             #     pads     = platform.request_all("user_led")
