@@ -29,9 +29,11 @@
   - [Async FIFO Design - Sunburst Design](http://www.sunburst-design.com/papers/CummingsSNUG2002SJ_FIFO1.pdf)
   - [Dual-Clock Async FIFO in SV - Verilog Pro](https://www.verilogpro.com/asynchronous-fifo-design/)
   - [CDC Design 3 Part Series - Verilog Pro](https://www.verilogpro.com/clock-domain-crossing-part-1/)
+  - [Simple CDC - ZipCPU](https://zipcpu.com/blog/2017/10/20/cdc.html)
   - [CDC with an Async FIFO - ZipCPU](https://zipcpu.com/blog/2018/07/06/afifo.html)
+    - [Source on GitHub - afifo.v](https://github.com/ZipCPU/website/blob/master/examples/afifo.v)
   - [CDC with an FPGA - NandLand](https://nandland.com/lesson-14-crossing-clock-domains/)
-  - [CDC using FIFOs example using UART](https://www.mehmetburakaykenar.com/clock-domain-crossing-cdc-using-fifos-high-speed-uart-transciever-example/140/)
+    - Contained recommendations on signals, including using Almost-Empty/Full signals to avoid situations where the signal is invalid due to signal propegation & timing requirements
 
 ### Cool Things To Note
 
