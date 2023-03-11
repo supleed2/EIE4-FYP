@@ -28,6 +28,7 @@ from litedram.phy import ECP5DDRPHY
 
 from testLED import TestLed
 from testRGB import TestRgb
+from testSaw import TestSaw
 
 # CRG ---------------------------------------------------------------------------------------------
 
@@ -224,6 +225,12 @@ class BaseSoC(SoCCore):
                 IOStandard("LVCMOS33")
             )
         ])
+
+        # DAC Control / Audio Blocks ---------------------------------------------------------------
+        self.audio = TestSaw(
+            platform = platform,
+            pads     = platform.request("dac_pcm")
+        )
 
 # Build --------------------------------------------------------------------------------------------
 
