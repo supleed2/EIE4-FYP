@@ -73,7 +73,7 @@ static void prompt(void) {
 /*-----------------------------------------------------------------------*/
 /* Help                                                                  */
 /*-----------------------------------------------------------------------*/
-
+// void audio_targ_write(uint32_t v)
 static void help(void) {
 	puts("\nLiteX custom demo app built "__DATE__
 		 " "__TIME__
@@ -90,6 +90,9 @@ static void help(void) {
 	puts("hellocpp           - Hello C++");
 #ifdef CSR_LEDS_BASE
 	puts("leds               - Led set demo");
+#endif
+#ifdef CSR_AUDIO_BASE
+	puts("audio              - Sawtooth Audio demo");
 #endif
 #endif
 }
@@ -152,6 +155,15 @@ static void leds_cmd(char **val) {
 	leds(value);
 }
 #endif
+#ifdef CSR_AUDIO_BASE
+extern void audio(int);
+
+static void audio_cmd(char **val) {
+	int value = (int)strtol(get_token(val), NULL, 0);
+	printf("Setting Sawtooth to %dHz\n", value);
+	audio(value);
+}
+#endif
 #endif
 
 extern void donut(void);
@@ -202,11 +214,15 @@ static void console_service(void) {
 	else if (strcmp(token, "helloc") == 0)
 		helloc_cmd();
 #ifdef WITH_CXX
-#ifdef CSR_LEDS_BASE
 	else if (strcmp(token, "hellocpp") == 0)
 		hellocpp_cmd();
+#ifdef CSR_LEDS_BASE
 	else if (strcmp(token, "leds") == 0)
 		leds_cmd(&str);
+#endif
+#ifdef CSR_AUDIO_BASE
+	else if (strcmp(token, "audio") == 0)
+		audio_cmd(&str);
 #endif
 #endif
 	prompt();
