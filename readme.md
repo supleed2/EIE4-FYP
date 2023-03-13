@@ -34,6 +34,10 @@
     - [Source on GitHub - afifo.v](https://github.com/ZipCPU/website/blob/master/examples/afifo.v)
   - [CDC with an FPGA - NandLand](https://nandland.com/lesson-14-crossing-clock-domains/)
     - Contained recommendations on signals, including using Almost-Empty/Full signals to avoid situations where the signal is invalid due to signal propegation & timing requirements
+- [LiteScope GitHub Repository](https://github.com/enjoy-digital/litescope) - Scope to record signals internal to the FPGA Fabric
+  - [GitHub Wiki - Use LiteScope To Debug A SoC](https://github.com/enjoy-digital/litex/wiki/Use-LiteScope-To-Debug-A-SoC)
+  - [litex-buildenv wiki on using LiteX](https://github.com/timvideos/litex-buildenv/wiki/Notes-and-Tips#litescope)
+  - [Posible irc discusions on LiteScope?](https://freenode.irclog.whitequark.org/litex/search?q=litescope)
 
 ### Cool Things To Note
 
@@ -100,3 +104,4 @@
 - [FPGA Tooling on Ubuntu 20.04 - FPGA Dev](https://projectf.io/posts/fpga-dev-ubuntu-20.04/)
 - [Reddit question on riscv core on fpga](https://www.reddit.com/r/RISCV/comments/t1raxb/is_it_possible_to_build_a_riscv_core_on_fpga/)
 - [linux-on-litex-vexriscv/orangecrab_with_enc28j60_on_spi.md](https://github.com/niw/linux-on-litex-vexriscv/blob/add_enc28j60_to_orange_crab/orangecrab_with_enc28j60_on_spi.md)
+- [Previous paper using LiteX](https://www.martin-schreiber.info/data/student_projects/BA_2021_martin_troiber.pdf)
