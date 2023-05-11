@@ -223,6 +223,11 @@ class BaseSoC(SoCCore):
                 Subsignal("mc", Pins("R17")), # IO_SCK
                 Subsignal("md", Pins("N16")), # IO_MOSI
                 IOStandard("LVCMOS33")
+            ),
+            ("debug_uart", 0,
+                Subsignal("tx", Pins("B8")), # IO_10
+                Subsignal("rx", Pins("C8")), # IO_9
+                IOStandard("LVCMOS33")
             )
         ])
 
