@@ -212,16 +212,16 @@ class BaseSoC(SoCCore):
         # GPIO Pins --------------------------------------------------------------------------------
         platform.add_extension([
             ("dac_pcm", 0,
-                Subsignal("sck", Pins("G4")),
-                Subsignal("bck", Pins("N17")),
-                Subsignal("lrck", Pins("M18")),
-                Subsignal("data", Pins("T17")),
+                Subsignal("sck", Pins("G4")), # IO_A4
+                Subsignal("bck", Pins("N17")), # IO_0
+                Subsignal("lrck", Pins("M18")), # IO_1
+                Subsignal("data", Pins("T17")), # IO_A5
                 IOStandard("LVCMOS33")
             ),
             ("dac_ctrl", 0,
-                Subsignal("ms", Pins("N15")),
-                Subsignal("mc", Pins("R17")),
-                Subsignal("md", Pins("N16")),
+                Subsignal("ms", Pins("N15")), # IO_MISO
+                Subsignal("mc", Pins("R17")), # IO_SCK
+                Subsignal("md", Pins("N16")), # IO_MOSI
                 IOStandard("LVCMOS33")
             )
         ])
