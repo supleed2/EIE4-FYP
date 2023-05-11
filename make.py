@@ -237,6 +237,23 @@ class BaseSoC(SoCCore):
             pads     = platform.request("dac_pcm")
         )
 
+                # LiteScope Analyzer -----------------------------------------------------------------------
+        self.add_uartbone(name="debug_uart", baudrate=115200)
+        from litescope import LiteScopeAnalyzer
+        analyzer_signals = [
+            self.audio.targ.storage,
+            self.audio.backpressure_48,
+            self.audio.leftrightaudio_48,
+            self.audio.audioready_48,
+        ]
+        self.submodules.analyzer = LiteScopeAnalyzer(
+            analyzer_signals,
+            depth        = 1024,
+            clock_domain = "sys",
+            samplerate   = sys_clk_freq,
+            csr_csv      = "analyzer.csv",
+        )
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -258,6 +275,7 @@ def main():
         **parser.soc_argdict)
     if args.with_spi_sdcard:
         soc.add_spi_sdcard()
+    args.csr_csv = "csr.csv"
     builder = Builder(soc, **parser.builder_argdict)
     if args.build:
         builder.build(**parser.toolchain_argdict)
