@@ -7,3 +7,7 @@ demo/*.d
 demo/demo.bin
 demo/demo.elf
 demo/demo.elf.map
+analyzer.csv
+csr.csv
+gsd_orangecrab.dfu
+kernel.bin
