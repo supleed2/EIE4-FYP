@@ -5,5 +5,7 @@ cp build/gsd_orangecrab/gateware/gsd_orangecrab.bit gsd_orangecrab.dfu && echo "
 dfu-suffix -v 1209 -p 5af0 -a gsd_orangecrab.dfu && echo "Added DFU suffix for target (VID:PID)"
 # rm -f /mnt/c/Users/suple/Desktop/dfu-util-0.9-win64/gsd.dfu && echo "Deleted old Win11 DFU"
 # mv gsd_orangecrab.dfu /mnt/c/Users/suple/Desktop/dfu-util-0.9-win64/gsd.dfu && echo "Moved new DFU to Win11 Desktop"
-rm -f docs/ && echo "Deleted old docs in project root"
+rm -r docs/ && echo "Deleted old docs in project root"
 cp -r build/gsd_orangecrab/doc/_build/html docs/ && echo "Copied docs to project root"
+python3 demo/demo.py --build-path build/gsd_orangecrab/
+rm -f demo/*.o demo/*.d demo/demo.bin demo/demo.elf demo/demo.elf.map && echo "Cleaned up build artifacts"
