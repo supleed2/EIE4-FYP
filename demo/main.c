@@ -86,14 +86,12 @@ static void help(void) {
 #endif
 	puts("donut              - Spinning Donut demo");
 	puts("helloc             - Hello C");
-#ifdef WITH_CXX
 	puts("hellocpp           - Hello C++");
 #ifdef CSR_LEDS_BASE
 	puts("leds               - Led set demo");
 #endif
 #ifdef CSR_AUDIO_BASE
 	puts("audio              - Sawtooth Audio demo");
-#endif
 #endif
 }
 
@@ -145,7 +143,6 @@ static void led_cmd(void) {
 }
 #endif
 
-#ifdef WITH_CXX
 #ifdef CSR_LEDS_BASE
 extern void leds(int);
 
@@ -164,7 +161,6 @@ static void audio_cmd(char **val) {
 	audio(value);
 }
 #endif
-#endif
 
 extern void donut(void);
 
@@ -180,14 +176,12 @@ static void helloc_cmd(void) {
 	helloc();
 }
 
-#ifdef WITH_CXX
 extern void hellocpp(void);
 
 static void hellocpp_cmd(void) {
 	printf("Hello C++ demo...\n");
 	hellocpp();
 }
-#endif
 
 /*-----------------------------------------------------------------------*/
 /* Console service / Main                                                */
@@ -213,7 +207,6 @@ static void console_service(void) {
 		donut_cmd();
 	else if (strcmp(token, "helloc") == 0)
 		helloc_cmd();
-#ifdef WITH_CXX
 	else if (strcmp(token, "hellocpp") == 0)
 		hellocpp_cmd();
 #ifdef CSR_LEDS_BASE
@@ -223,7 +216,6 @@ static void console_service(void) {
 #ifdef CSR_AUDIO_BASE
 	else if (strcmp(token, "audio") == 0)
 		audio_cmd(&str);
-#endif
 #endif
 	prompt();
 }
