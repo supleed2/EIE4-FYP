@@ -11,29 +11,29 @@ module genSaw
 
 logic [8:0] clk_div;
 always_ff @(posedge i_clk48)
-  if (!i_rst48_n)             clk_div <= 0;
-  else if (clk_div == 9'd500) clk_div <= 0;
-  else                        clk_div <= clk_div + 1;
+  if (!i_rst48_n)             clk_div <= 0; // Reset if reset is low
+  else if (clk_div == 9'd500) clk_div <= 0; // Reset count every 500 cycles
+  else                        clk_div <= clk_div + 1; // Increment otherwise
 
 logic clk_48k;
 always_ff @(posedge i_clk48)
-  if (!i_rst48_n)             clk_48k <= 0;
-  else if (clk_div == 9'd500) clk_48k <= ~clk_48k;
+  if (!i_rst48_n)             clk_48k <= 0; // Reset if reset is low
+  else if (clk_div == 9'd500) clk_48k <= ~clk_48k; // Invert every 500 cycles
 
 logic clk_48k_past;
 always_ff @(posedge i_clk48)
-  clk_48k_past <= clk_48k;
+  clk_48k_past <= clk_48k; // 1 cycle delayed version of 48kHz clock
 
-assign o_new_pulse = clk_48k && !clk_48k_past;
+assign o_new_pulse = clk_48k && !clk_48k_past; // Detect rising edge of 48kHz clock
 
 logic [23:0] saw_step;
-assign saw_step = (24'd699 * i_tf) >> 1;
+assign saw_step = (24'd699 * i_tf) >> 1; // Sawtooth step calc from input target freq
 
 logic [23:0] waveform;
 always_ff @(posedge clk_48k)
-  if (!i_rst48_n)    waveform <= '0;
-  else if (!i_pause) waveform <= waveform + saw_step;
+  if (!i_rst48_n)    waveform <= '0; // Reset if reset is low
+  else if (!i_pause) waveform <= waveform + saw_step; // Add saw step if not paused (48kHz)
 
-assign o_lr = {waveform, waveform};
+assign o_lr = {waveform, waveform}; // Output same sample to left & right
 
 endmodule
