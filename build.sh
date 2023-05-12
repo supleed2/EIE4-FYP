@@ -19,10 +19,12 @@ rm -f demo/*.o demo/*.d demo/demo.elf demo/demo.elf.map && echo "Cleaned up buil
 read -p "Flash OrangeCrab? [y/N]" -n 1 -r FLASH_OC
 if [[ $FLASH_OC =~ ^[Yy]$ ]]; then
     echo # Move to next line
+    set +e
     dfu-util -D gsd_orangecrab.dfu
+    set -e
 else echo "Skipping Reflash"
 fi
 read -p "Start litex_term? [y/N]" -n 1 -r START_LT
 if [[ $START_LT =~ ^[Yy]$ ]]; then
-    litex_term --kernel demo.bin /dev/ttyACM0
+    litex_term --kernel kernel.bin /dev/ttyACM0
 fi
