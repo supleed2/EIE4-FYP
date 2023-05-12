@@ -4,10 +4,8 @@ include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
 OBJECTS   = donut.o helloc.o crt0.o main.o
-ifdef WITH_CXX
-	OBJECTS += hellocpp.o leds.o audio.o
-	CFLAGS += -DWITH_CXX
-endif
+OBJECTS += hellocpp.o leds.o audio.o
+CFLAGS += -DWITH_CXX
 
 
 all: demo.bin
