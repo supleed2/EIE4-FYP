@@ -75,8 +75,8 @@ static void prompt(void) {
 /*-----------------------------------------------------------------------*/
 // void audio_targ_write(uint32_t v)
 static void help(void) {
-	puts("\nLiteX custom demo app built "__DATE__
-		 " "__TIME__
+	puts("\nLiteX custom demo app built " __DATE__
+		 " " __TIME__
 		 "\n");
 	puts("Available commands:");
 	puts("help               - Show this command");
@@ -144,7 +144,7 @@ static void led_cmd(void) {
 #endif
 
 #ifdef CSR_LEDS_BASE
-extern void leds(int);
+extern "C" void leds(int);
 
 static void leds_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
@@ -153,7 +153,7 @@ static void leds_cmd(char **val) {
 }
 #endif
 #ifdef CSR_AUDIO_BASE
-extern void audio(int);
+extern "C" void audio(int);
 
 static void audio_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
@@ -162,21 +162,21 @@ static void audio_cmd(char **val) {
 }
 #endif
 
-extern void donut(void);
+extern "C" void donut(void);
 
 static void donut_cmd(void) {
 	printf("Donut demo...\n");
 	donut();
 }
 
-extern void helloc(void);
+extern "C" void helloc(void);
 
 static void helloc_cmd(void) {
 	printf("Hello C demo...\n");
 	helloc();
 }
 
-extern void hellocpp(void);
+extern "C" void hellocpp(void);
 
 static void hellocpp_cmd(void) {
 	printf("Hello C++ demo...\n");

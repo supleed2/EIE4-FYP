@@ -2,5 +2,5 @@
 
 void helloc(void);
 void helloc(void) {
-  printf("C: Hello, world!\n");
+	printf("C: Hello, world!\n");
 }
