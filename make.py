@@ -241,6 +241,7 @@ class BaseSoC(SoCCore):
         self.add_uartbone(name="debug_uart", baudrate=115200)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
+            self.audio.targ.re,
             self.audio.targ.storage,
             self.audio.backpressure_48,
             self.audio.leftrightaudio_48,
@@ -248,7 +249,7 @@ class BaseSoC(SoCCore):
         ]
         self.submodules.analyzer = LiteScopeAnalyzer(
             analyzer_signals,
-            depth        = 1024,
+            depth        = 2048,
             clock_domain = "sys",
             samplerate   = sys_clk_freq,
             csr_csv      = "analyzer.csv",
