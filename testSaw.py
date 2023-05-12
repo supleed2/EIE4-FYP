@@ -36,7 +36,7 @@ class TestSaw(Module, AutoCSR, ModuleDoc):
 
         self.specials += Instance("genSaw",
             i_i_clk48     = ClockSignal(),
-            i_i_rst48_n   = ResetSignal(),
+            i_i_rst48_n   = ~ResetSignal(),
             i_i_pause     = self.backpressure_48,
             i_i_tf        = self.targ.storage,
             o_o_lr        = self.leftrightaudio_48,
@@ -45,7 +45,7 @@ class TestSaw(Module, AutoCSR, ModuleDoc):
 
         self.specials += Instance("pcmfifo",
             i_i_clk48   = ClockSignal(),
-            i_i_rst48_n = ResetSignal(),
+            i_i_rst48_n = ~ResetSignal(),
             i_i_dvalid  = self.audioready_48,
             i_i_din     = self.leftrightaudio_48,
             o_o_full    = self.backpressure_48,
@@ -59,7 +59,7 @@ class TestSaw(Module, AutoCSR, ModuleDoc):
 
         self.specials += Instance("dacDriver",
             i_i_clk36   = ClockSignal("dac"),
-            i_i_rst36_n = ResetSignal("dac"),
+            i_i_rst36_n = ~ResetSignal("dac"),
             i_i_wait    = self.fifoempty_36,
             i_i_lraudio = self.leftrightaudio_36,
             o_o_rdreq   = self.readrequest_36,
