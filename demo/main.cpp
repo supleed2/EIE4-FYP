@@ -17,7 +17,7 @@
 static char *readstr(void) {
 	char c[2];
 	static char s[64];
-	static int ptr = 0;
+	static unsigned int ptr = 0;
 
 	if (readchar_nonblock()) {
 		c[0] = getchar();
@@ -144,7 +144,7 @@ static void led_cmd(void) {
 #endif
 
 #ifdef CSR_LEDS_BASE
-extern "C" void leds(int);
+void leds(int);
 
 static void leds_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
@@ -153,7 +153,7 @@ static void leds_cmd(char **val) {
 }
 #endif
 #ifdef CSR_AUDIO_BASE
-extern "C" void audio(int);
+void audio(int);
 
 static void audio_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
@@ -162,21 +162,21 @@ static void audio_cmd(char **val) {
 }
 #endif
 
-extern "C" void donut(void);
+void donut(void);
 
 static void donut_cmd(void) {
 	printf("Donut demo...\n");
 	donut();
 }
 
-extern "C" void helloc(void);
+void helloc(void);
 
 static void helloc_cmd(void) {
 	printf("Hello C demo...\n");
 	helloc();
 }
 
-extern "C" void hellocpp(void);
+void hellocpp(void);
 
 static void hellocpp_cmd(void) {
 	printf("Hello C++ demo...\n");
