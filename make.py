@@ -237,7 +237,7 @@ class BaseSoC(SoCCore):
             pads     = platform.request("dac_pcm")
         )
 
-                # LiteScope Analyzer -----------------------------------------------------------------------
+        # LiteScope Analyzer -----------------------------------------------------------------------
         self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [

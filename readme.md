@@ -9,6 +9,7 @@
 
 ### Useful links
 
+- [API Reference migen, AsyncFIFO](https://m-labs.hk/migen/manual/reference.html#module-migen.genlib.fifo)
 - [Guide on adding a new core (incomplete)](https://github.com/enjoy-digital/litex/wiki/Add-A-New-Core)
   - [Using LiteEth on ECP5](https://github.com/enjoy-digital/liteeth/issues/66)
   - [Adding HW modules](https://github.com/enjoy-digital/litex/issues/746), lots more info in issue
