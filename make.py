@@ -238,20 +238,27 @@ class BaseSoC(SoCCore):
         )
 
                 # LiteScope Analyzer -----------------------------------------------------------------------
-        self.add_uartbone(name="debug_uart", baudrate=115200)
+        self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
             self.audio.targ.re,
             self.audio.targ.storage,
-            self.audio.backpressure_48,
-            self.audio.leftrightaudio_48,
-            self.audio.audioready_48,
+            # self.audio.backpressure_48,
+            # self.audio.sample_48,
+            # self.audio.audioready_48,
+            self.audio.readrequest_36,
+            self.audio.sample_36,
+            self.audio.fifoempty_36,
+            self.audio.dac_lrck,
+            self.audio.dac_bck,
+            self.audio.dac_data,
         ]
         self.submodules.analyzer = LiteScopeAnalyzer(
             analyzer_signals,
-            depth        = 2048,
-            clock_domain = "sys",
-            samplerate   = sys_clk_freq,
+            # depth        = 23000,
+            depth        = 3072,
+            clock_domain = "dac",
+            samplerate   = 36.92e6, # Actual clock frequency of DAC clock domain
             csr_csv      = "analyzer.csv",
         )
 
