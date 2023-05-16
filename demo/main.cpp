@@ -10,6 +10,8 @@
 #include <libbase/console.h>
 #include <libbase/uart.h>
 
+#include "note"
+
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
@@ -90,6 +92,8 @@ static void help(void) {
 #endif
 #ifdef CSR_AUDIO_BASE
 	puts("saw                - Sawtooth Audio demo");
+	puts("imperial           - Imperial March demo");
+	puts("roll               - Music demo");
 #endif
 }
 
@@ -121,6 +125,65 @@ static void saw_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
 	printf("Setting Sawtooth to %dHz\n", value);
 	audio_targ_write(value);
+}
+
+static void imperial_cmd() {
+	note(NOTE_G4, 400);
+	note(NOTE_NONE, 400);
+	note(NOTE_G4, 400);
+	note(NOTE_NONE, 400);
+	note(NOTE_G4, 600);
+	note(NOTE_NONE, 600);
+	note(NOTE_D4S, 200);
+	note(NOTE_A4S, 200);
+	note(NOTE_G4, 600);
+	note(NOTE_NONE, 200);
+	note(NOTE_D4S, 400);
+	note(NOTE_NONE, 200);
+	note(NOTE_A4S, 200);
+	note(NOTE_G4, 1000);
+	note(NOTE_D4S, 600);
+	note(NOTE_NONE, 200);
+	note(NOTE_D5, 600);
+	note(NOTE_NONE, 200);
+	note(NOTE_D5, 600);
+	note(NOTE_NONE, 200);
+	note(NOTE_D5, 600);
+	note(NOTE_NONE, 200);
+	note(NOTE_D5S, 400);
+	note(NOTE_NONE, 200);
+	note(NOTE_A4S, 200);
+	note(NOTE_F4S, 600);
+	note(NOTE_NONE, 200);
+	note(NOTE_D4S, 400);
+	note(NOTE_NONE, 200);
+	note(NOTE_A4S, 200);
+	note(NOTE_G4, 800);
+}
+
+static void roll_cmd() {
+	note(NOTE_C4S, 450);
+	note(NOTE_D4S, 600);
+	note(NOTE_G3S, 150);
+	note(NOTE_D4S, 450);
+	note(NOTE_F4, 450);
+	note(NOTE_G4S, 90);
+	note(NOTE_F4S, 90);
+	note(NOTE_F4, 90);
+	note(NOTE_C4S, 510);
+	note(NOTE_D4S, 600);
+	note(NOTE_G3S, 1500);
+	note(NOTE_C4S, 450);
+	note(NOTE_D4S, 600);
+	note(NOTE_G3S, 150);
+	note(NOTE_D4S, 450);
+	note(NOTE_F4, 450);
+	note(NOTE_G4S, 90);
+	note(NOTE_F4S, 90);
+	note(NOTE_F4, 90);
+	note(NOTE_C4S, 510);
+	note(NOTE_D4S, 600);
+	note(NOTE_G3S, 1500);
 }
 #endif
 
@@ -160,6 +223,10 @@ static void console_service(void) {
 #ifdef CSR_AUDIO_BASE
 	else if (strcmp(token, "saw") == 0)
 		saw_cmd(&str);
+	else if (strcmp(token, "imperial") == 0)
+		imperial_cmd();
+	else if (strcmp(token, "roll") == 0)
+		roll_cmd();
 #endif
 	prompt();
 }
