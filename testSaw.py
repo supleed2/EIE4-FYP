@@ -59,6 +59,7 @@ class TestSaw(Module, AutoCSR, ModuleDoc):
             i_i_rst48_n = ~ResetSignal(),
             i_i_pause   = self.backpressure_48,
             i_i_targetf = self.targ0.storage,
+            i_i_wave    = self.wave0.storage,
             o_o_sample  = self.sample_48,
             o_o_pulse   = self.audioready_48,
         )
