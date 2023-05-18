@@ -24,13 +24,13 @@ logic clk_48k_past;
 always_ff @(posedge i_clk48) // Track rising / falling edge of 48kHz clock
   clk_48k_past <= clk_48k;
 
-assign o_pulse = clk_48k && !clk_48k_past; // Detect rising edge of 48kHz clock
+always_comb o_pulse = clk_48k && !clk_48k_past; // Detect rising edge of 48kHz clock
 
 logic [23:0] int_saw_step;
-assign int_saw_step = (24'd699 * i_targetf); // Sawtooth step calc from input target freq
+always_comb int_saw_step = (24'd699 * i_targetf); // Sawtooth step calc from input target freq
 
 logic [15:0] saw_step;
-assign saw_step = {1'b0, int_saw_step[23:9]}; // Shift step right correctly (2^9)
+always_comb saw_step = {1'b0, int_saw_step[23:9]}; // Shift step right correctly (2^9)
 
 always_ff @(posedge clk_48k) // Generate new sample on rising edge of 48kHz clock
   if (!i_rst48_n)    o_sample <= '0;

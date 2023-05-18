@@ -24,6 +24,6 @@ always_comb
   else if (counter < 168_000_000) {leds} = 3'b110;
   else {leds} = 3'b111;
 
-assign {o_ledr, o_ledg, o_ledb} = leds;
+always_comb {o_ledr, o_ledg, o_ledb} = leds;
 
 endmodule
