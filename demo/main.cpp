@@ -124,7 +124,7 @@ static void leds_cmd(char **val) {
 static void saw_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
 	printf("Setting Sawtooth to %dHz\n", value);
-	audio_targ_write(value);
+	audio_targ0_write(value);
 }
 
 static void imperial_cmd() {
