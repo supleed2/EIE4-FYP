@@ -5,6 +5,7 @@
 // Function Definition
 
 void note(uint32_t frequency, unsigned int duration_ms);
+void wave(uint32_t wave);
 
 // Notes
 
@@ -76,3 +77,10 @@ void note(uint32_t frequency, unsigned int duration_ms);
 #define NOTE_B6 1976
 
 #define NOTE_C7 2093
+
+// Waves
+
+#define WAVE_SAW 0
+#define WAVE_SQUARE 1
+#define WAVE_TRIANGLE 2
+#define WAVE_SINE 3

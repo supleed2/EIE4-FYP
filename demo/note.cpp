@@ -6,3 +6,7 @@ void note(uint32_t frequency, unsigned int duration_ms) {
 	busy_wait(duration_ms);
 	audio_targ0_write(0);
 }
+
+void wave(uint32_t wave) {
+	audio_wave0_write(wave);
+}

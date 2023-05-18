@@ -91,7 +91,10 @@ static void help(void) {
 	puts("leds               - Led set demo");
 #endif
 #ifdef CSR_AUDIO_BASE
-	puts("saw                - Sawtooth Audio demo");
+	puts("saw                - Sawtooth Wave demo");
+	puts("square             - Square Wave demo");
+	puts("triangle           - Triangle Wave demo");
+	puts("sine               - Sine Wave demo");
 	puts("imperial           - Imperial March demo");
 	puts("roll               - Music demo");
 #endif
@@ -123,7 +126,29 @@ static void leds_cmd(char **val) {
 #ifdef CSR_AUDIO_BASE
 static void saw_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
-	printf("Setting Sawtooth to %dHz\n", value);
+	printf("Setting Oscillator 0 to Sawtooth: %dHz\n", value);
+	wave(WAVE_SAW);
+	audio_targ0_write(value);
+}
+
+static void square_cmd(char **val) {
+	int value = (int)strtol(get_token(val), NULL, 0);
+	printf("Setting Oscillator 0 to Square: %dHz\n", value);
+	wave(WAVE_SQUARE);
+	audio_targ0_write(value);
+}
+
+static void triangle_cmd(char **val) {
+	int value = (int)strtol(get_token(val), NULL, 0);
+	printf("Setting Oscillator 0 to Triangle: %dHz\n", value);
+	wave(WAVE_TRIANGLE);
+	audio_targ0_write(value);
+}
+
+static void sine_cmd(char **val) {
+	int value = (int)strtol(get_token(val), NULL, 0);
+	printf("Setting Oscillator 0 to Sine: %dHz\n", value);
+	wave(WAVE_SINE);
 	audio_targ0_write(value);
 }
 
@@ -223,6 +248,12 @@ static void console_service(void) {
 #ifdef CSR_AUDIO_BASE
 	else if (strcmp(token, "saw") == 0)
 		saw_cmd(&str);
+	else if (strcmp(token, "square") == 0)
+		square_cmd(&str);
+	else if (strcmp(token, "triangle") == 0)
+		triangle_cmd(&str);
+	else if (strcmp(token, "sine") == 0)
+		sine_cmd(&str);
 	else if (strcmp(token, "imperial") == 0)
 		imperial_cmd();
 	else if (strcmp(token, "roll") == 0)
