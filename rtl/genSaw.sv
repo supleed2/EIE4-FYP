@@ -39,10 +39,10 @@ always_ff @(posedge clk_48k) // Generate new saw sample on rising edge of 48kHz 
   else if (!i_pause) saw <= saw + saw_step; // Add saw_step if not paused (48kHz)
 
 logic [15:0] square;
-always_comb square = {16{saw[15]}};
+always_comb square = {16{saw[15]}}; // Square wave is MSB of saw
 
 logic [15:0] triangle;
-always_comb triangle = saw[15] ? {16'hFFFF - {saw[14:0], 1'b1}} : {saw[14:0], 1'b0}; // TODO: Optimise?
+always_comb triangle = saw[15] ? {~saw[14:0], 1'b1} : {saw[14:0], 1'b0}; // Triangle wave calc
 
 logic [15:0] sine;
 always_comb sine = saw; // TODO: Insert sine calcuation here?
