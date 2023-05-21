@@ -9,6 +9,12 @@
 
 ### Useful links
 
+- Sine Approximation for Sawtooth - Sine Conversion
+  - Polynomial Approximation
+    - [Desmos Demonstration (Screenshot)](sine_poly_approx.png)
+  - CORDIC Research
+    - [Area/Energy Efficient CORDIC Accelerator](https://www.researchgate.net/publication/309549123_Area_and_Energy_efficient_CORDIC_Accelerator_for_Embedded_Processor_Datapaths)
+    - [Doulos SNUG Europe 2004 Paper](https://www.doulos.com/knowhow/systemverilog/a-users-experience-with-systemverilog/), [local copy of Verilog](doulos_CORDIC.v)
 - [API Reference migen, AsyncFIFO](https://m-labs.hk/migen/manual/reference.html#module-migen.genlib.fifo)
 - [Guide on adding a new core (incomplete)](https://github.com/enjoy-digital/litex/wiki/Add-A-New-Core)
   - [Using LiteEth on ECP5](https://github.com/enjoy-digital/liteeth/issues/66)
