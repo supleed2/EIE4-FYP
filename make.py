@@ -26,6 +26,7 @@ from litex.soc.cores.led import LedChaser
 from litedram.modules import MT41K64M16, MT41K128M16, MT41K256M16, MT41K512M16
 from litedram.phy import ECP5DDRPHY
 
+from dacVolume import DacVolume
 from testLED import TestLed
 from testRGB import TestRgb
 from testSaw import TestSaw
@@ -237,10 +238,20 @@ class BaseSoC(SoCCore):
             pads     = platform.request("dac_pcm")
         )
 
+        self.dac_vol = DacVolume(
+            platform = platform,
+            pads     = platform.request("dac_ctrl")
+        )
+
         # LiteScope Analyzer -----------------------------------------------------------------------
         self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
+            self.dac_vol.volume.re,
+            self.dac_vol.volume.storage,
+            self.dac_vol.m_sel_n,
+            self.dac_vol.m_clock,
+            self.dac_vol.m_data,
             self.audio.targ0.re,
             # self.audio.targ0.storage,
             self.audio.wave0.re,
@@ -260,8 +271,10 @@ class BaseSoC(SoCCore):
         self.submodules.analyzer = LiteScopeAnalyzer(
             analyzer_signals,
             depth        = analyzer_depth,
-            clock_domain = "dac",
-            samplerate   = 36.92e6, # Actual clock frequency of DAC clock domain
+            # clock_domain = "dac",
+            clock_domain = "sys",
+            # samplerate   = 36.92e6, # Actual clock frequency of DAC clock domain
+            samplerate   = sys_clk_freq,
             csr_csv      = "analyzer.csv",
         )
 
