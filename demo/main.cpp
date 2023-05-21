@@ -98,6 +98,9 @@ static void help(void) {
 	puts("imperial           - Imperial March demo");
 	puts("roll               - Music demo");
 #endif
+#ifdef CSR_DAC_VOL_BASE
+	puts("volume             - Get / Set DAC Volume");
+#endif
 }
 
 /*-----------------------------------------------------------------------*/
@@ -211,6 +214,18 @@ static void roll_cmd() {
 	note(NOTE_G3S, 1500);
 }
 #endif
+#ifdef CSR_DAC_VOL_BASE
+static void dac_vol_cmd(char **val) {
+	char *token = get_token(val);
+	if (token == *val) {
+		printf("DAC volume is %d (of 128)\n", dac_vol_volume_read());
+	} else {
+		int value = (int)strtol(token, NULL, 0);
+		printf("Setting DAC volume to %d (of 128)\n", value);
+		dac_vol_volume_write(value);
+	}
+}
+#endif
 
 void donut(void);
 
@@ -258,6 +273,10 @@ static void console_service(void) {
 		imperial_cmd();
 	else if (strcmp(token, "roll") == 0)
 		roll_cmd();
+#endif
+#ifdef CSR_DAC_VOL_BASE
+	else if (strcmp(token, "volume") == 0)
+		dac_vol_cmd(&str);
 #endif
 	prompt();
 }
