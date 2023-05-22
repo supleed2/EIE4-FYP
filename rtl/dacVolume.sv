@@ -28,21 +28,16 @@ always_ff @(posedge i_clk48) // Count 6MHz cycle
 
 always_comb o_clock = div_6m[2]; // Drive DAC Control bus clock at 6MHz
 
-logic _sel_n;
-logic _data;
-// always_comb o_sel_n = _sel_n; // Design fails to boot unless _sel_n optimised out
-// always_comb o_data  = _data;  // Design fails to boot unless _data optimised out
-
 logic [34:0] sel_n;
 always_ff @(negedge o_clock) // Update SEL_n on falling edge of CLOCK (As in PCM1780 Datasheet)
-  if (!i_rst48_n)    {_sel_n, sel_n} <= 36'hFFFFFFFFF;
-  else if (valid[7]) {_sel_n, sel_n} <= 36'h0000C0003;
-  else               {_sel_n, sel_n} <= {sel_n, 1'b1};
+  if (!i_rst48_n)    {o_sel_n, sel_n} <= 36'hFFFFFFFFF;
+  else if (valid[7]) {o_sel_n, sel_n} <= 36'h0000C0003;
+  else               {o_sel_n, sel_n} <= {sel_n, 1'b1};
 
 logic [34:0] data;
 always_ff @(negedge o_clock) // Update DATA on falling edge of CLOCK (As in PCM1780 Datasheet)
-  if (!i_rst48_n)    {_data, data} <= 36'h000000000;
-  else if (valid[7]) {_data, data} <= {8'd16, volume, 2'd0, 8'd17, volume, 2'd0};
-  else               {_data, data} <= {data, 1'b0};
+  if (!i_rst48_n)    {o_data, data} <= 36'h000000000;
+  else if (valid[7]) {o_data, data} <= {8'd16, volume, 2'd0, 8'd17, volume, 2'd0};
+  else               {o_data, data} <= {data, 1'b0};
 
 endmodule
