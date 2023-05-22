@@ -4,8 +4,10 @@
 
 // Function Definition
 
+#ifdef CSR_AUDIO_BASE
 void note(uint32_t frequency, unsigned int duration_ms);
 void wave(uint32_t wave);
+#endif
 
 // Notes
 
