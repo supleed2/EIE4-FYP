@@ -1,6 +1,7 @@
 #include <generated/csr.h>
 #include <stdio.h>
 
+#ifdef CSR_LEDS_BASE
 void led(void) {
 	int i;
 	int j;
@@ -38,3 +39,4 @@ void led(void) {
 	printf("Clearing led...\n");
 	leds_out_write(0);
 }
+#endif
