@@ -10,5 +10,6 @@
 /analyzer.csv
 /csr.csv
 /dump-*.vcd
-/gsd_orangecrab.dfu
+/*.dfu
 /kernel.bin
+/sintest/
