@@ -83,11 +83,9 @@ static void help(void) {
 	puts("Available commands:");
 	puts("help               - Show this command");
 	puts("reboot             - Reboot CPU");
-#ifdef CSR_LEDS_BASE
-	puts("led                - Led demo");
-#endif
 	puts("donut              - Spinning Donut demo");
 #ifdef CSR_LEDS_BASE
+	puts("led                - Led demo");
 	puts("leds               - Led set demo");
 #endif
 #ifdef CSR_AUDIO_BASE
@@ -117,9 +115,7 @@ void led(void);
 static void led_cmd(void) {
 	led();
 }
-#endif
 
-#ifdef CSR_LEDS_BASE
 static void leds_cmd(char **val) {
 	int value = (int)strtol(get_token(val), NULL, 0);
 	printf("Setting LED to %6x\n", value);
@@ -250,13 +246,11 @@ static void console_service(void) {
 		help();
 	else if (strcmp(token, "reboot") == 0)
 		reboot_cmd();
-#ifdef CSR_LEDS_BASE
-	else if (strcmp(token, "led") == 0)
-		led_cmd();
-#endif
 	else if (strcmp(token, "donut") == 0)
 		donut_cmd();
 #ifdef CSR_LEDS_BASE
+	else if (strcmp(token, "led") == 0)
+		led_cmd();
 	else if (strcmp(token, "leds") == 0)
 		leds_cmd(&str);
 #endif
