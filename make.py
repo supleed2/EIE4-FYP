@@ -239,20 +239,20 @@ class BaseSoC(SoCCore):
             pads     = platform.request("dac_pcm")
         )
 
-        self.dac_vol = DacVolume(
-            platform = platform,
-            pads     = platform.request("dac_ctrl")
-        )
+        # self.dac_vol = DacVolume(
+        #     platform = platform,
+        #     pads     = platform.request("dac_ctrl")
+        # )
 
         # LiteScope Analyzer -----------------------------------------------------------------------
         self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
-            self.dac_vol.volume.re,
-            self.dac_vol.volume.storage,
-            self.dac_vol.m_sel_n,
-            self.dac_vol.m_clock,
-            self.dac_vol.m_data,
+            # self.dac_vol.volume.re,
+            # self.dac_vol.volume.storage,
+            # self.dac_vol.m_sel_n,
+            # self.dac_vol.m_clock,
+            # self.dac_vol.m_data,
             self.audio.targ0.re,
             # self.audio.targ0.storage,
             self.audio.wave0.re,
