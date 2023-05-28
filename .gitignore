@@ -12,4 +12,3 @@
 /dump-*.vcd
 /*.dfu
 /kernel.bin
-/sintest/

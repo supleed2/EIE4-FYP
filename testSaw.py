@@ -14,6 +14,8 @@ class TestSaw(Module, AutoCSR, ModuleDoc):
     Set the expected frequency sawtooth wave to be output via the headphone port.
     """
     def __init__(self, platform, pads):
+        platform.add_source("rtl/cordic.sv")
+        platform.add_source("rtl/saw2sin.sv")
         platform.add_source("rtl/genSaw.sv")
         platform.add_source("rtl/dacDriver.sv")
 

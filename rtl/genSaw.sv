@@ -45,7 +45,10 @@ logic [15:0] triangle;
 always_comb triangle = saw[15] ? {~saw[14:0], 1'b1} : {saw[14:0], 1'b0}; // Triangle wave calc
 
 logic [15:0] sine;
-always_comb sine = saw; // TODO: Insert sine calcuation here?
+saw2sin m_saw2sin // Instantiate saw2sin module
+( .i_saw(saw)
+, .o_sin(sine)
+);
 
 always_comb // Select output waveform
   case (i_wave[1:0])
