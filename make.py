@@ -27,6 +27,7 @@ from litedram.modules import MT41K64M16, MT41K128M16, MT41K256M16, MT41K512M16
 from litedram.phy import ECP5DDRPHY
 
 from dacVolume import DacVolume
+from testCAN import CanReceiver
 from testLED import TestLed
 from testRGB import TestRgb
 from testSaw import TestSaw
@@ -213,6 +214,11 @@ class BaseSoC(SoCCore):
 
         # GPIO Pins --------------------------------------------------------------------------------
         platform.add_extension([
+            ("can", 0,
+                Subsignal("tx", Pins("J2")), # IO_13
+                Subsignal("rx", Pins("H2")), # IO_12
+                IOStandard("LVCMOS33")
+            ),
             ("dac_pcm", 0,
                 Subsignal("sck", Pins("G4")), # IO_A4
                 Subsignal("bck", Pins("N17")), # IO_0
@@ -233,6 +239,12 @@ class BaseSoC(SoCCore):
             )
         ])
 
+        # CAN Receiver Block -----------------------------------------------------------------------
+        self.can = CanReceiver(
+            platform = platform,
+            pads     = platform.request("can")
+        )
+
         # DAC Control / Audio Blocks ---------------------------------------------------------------
         self.audio = TestSaw(
             platform = platform,
@@ -248,6 +260,8 @@ class BaseSoC(SoCCore):
         self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
+            self.can.can_rx,
+            self.can.can_tx,
             # self.dac_vol.volume.re,
             # self.dac_vol.volume.storage,
             # self.dac_vol.m_sel_n,
