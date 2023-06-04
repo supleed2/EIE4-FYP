@@ -105,6 +105,9 @@ static void help(void) {
 	puts("can_mask           - Get / Set CAN Mask");
 	puts("can_read           - Receive CAN Frames and print (delay in s)");
 	puts("can_watch          - Watch CAN Frames at 2Hz");
+#ifdef CSR_AUDIO_BASE
+	puts("can_listen         - Play CAN Frames as Audio");
+#endif
 #endif
 }
 
@@ -294,6 +297,46 @@ static void can_watch_cmd() {
 		busy_wait(200);
 	}
 }
+
+#ifdef CSR_AUDIO_BASE
+const char *notes[85] = {"None", "C1", "C1#", "D1", "D1#", "E1", "F1", "F1#", "G1", "G1#", "A1", "A1#", "B1", "C2", "C2#", "D2", "D2#", "E2", "F2", "F2#", "G2", "G2#", "A2", "A2#", "B2", "C3", "C3#", "D3", "D3#", "E3", "F3", "F3#", "G3", "G3#", "A3", "A3#", "B3", "C4", "C4#", "D4", "D4#", "E4", "F4", "F4#", "G4", "G4#", "A4", "A4#", "B4", "C5", "C5#", "D5", "D5#", "E5", "F5", "F5#", "G5", "G5#", "A5", "A5#", "B5", "C6", "C6#", "D6", "D6#", "E6", "F6", "F6#", "G6", "G6#", "A6", "A6#", "B6", "C7", "C7#", "D7", "D7#", "E7", "F7", "F7#", "G7", "G7#", "A7", "A7#", "B7"};
+const int freqs[85] = {0, 33, 35, 37, 39, 41, 44, 46, 49, 52, 55, 58, 62, 65, 69, 73, 78, 82, 87, 93, 98, 104, 110, 117, 123, 131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247, 262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494, 523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047, 1109, 1175, 1245, 1319, 1397, 1480, 1568, 1661, 1760, 1865, 1976, 2093, 2217, 2349, 2489, 2637, 2794, 2960, 3136, 3322, 3520, 3729, 3951};
+static void can_listen_cmd() {
+	wave(WAVE_SINE);
+	int old_note = 0;
+	while (true) {
+		can_frame frame = can_read();
+		switch (frame.data[0]) {
+			case 'P': {
+				int note = (frame.data[1] - 1) * 12 + frame.data[2];
+				if (note != old_note) {
+					audio_targ0_write(freqs[note]);
+					printf("Playing note %s\n", notes[note]);
+					old_note = note;
+				}
+				break;
+			}
+			case 'R': {
+				// TODO: Add polyphony
+				if (old_note != 0) {
+					printf("Stopping notes\n");
+					old_note = 0;
+					audio_targ0_write(0);
+				}
+				break;
+			}
+			default: {
+				// printf("Unknown command, data[0]: 0x%2X", frame.data[0]);
+				break;
+			}
+		}
+		if (readchar_nonblock()) {
+			getchar();
+			return;
+		}
+	}
+}
+#endif
 #endif
 
 void donut(void);
@@ -354,6 +397,10 @@ static void console_service(void) {
 		can_read_cmd(&str);
 	else if (strcmp(token, "can_watch") == 0)
 		can_watch_cmd();
+#ifdef CSR_AUDIO_BASE
+	else if (strcmp(token, "can_listen") == 0)
+		can_listen_cmd();
+#endif
 #endif
 	prompt();
 }
