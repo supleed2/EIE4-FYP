@@ -54,8 +54,8 @@ always_comb // Select output waveform
   case (i_wave[1:0])
     2'd0: o_sample = saw;
     2'd1: o_sample = square;
-    2'd2: o_sample = triangle;
-    2'd3: o_sample = sine;
+    2'd2: o_sample = {~triangle[15], triangle[14:0]};
+    2'd3: o_sample = {~sine[15], sine[14:0]};
   endcase
 
 endmodule

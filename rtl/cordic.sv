@@ -33,9 +33,11 @@ always_comb cordic_angle[16] = 23'h000028; //  0.000437 degrees
 always_comb cordic_angle[17] = 23'h000014; //  0.000219 degrees
 always_comb cordic_angle[18] = 23'h00000A; //  0.000109 degrees
 
+/* verilator lint_off UNOPTFLAT */
 logic [18:0] x [0:19];
 logic [18:0] y [0:19];
 logic [22:0] p [0:19];
+/* verilator lint_on UNOPTFLAT */
 
 // Extend input from input to working widths
 always_comb x[0] = {1'b0, i_x, {2{1'b0}}};
@@ -43,15 +45,24 @@ always_comb y[0] = {1'b0, i_y, {2{1'b0}}};
 always_comb p[0] = {i_qph, {7{1'b0}}};
   // Max pos = 23'h3FFF80, Max neg = 23'h400000
 
+/* verilator lint_off ALWCOMBORDER */
 for (genvar i = 0; i < 19; i = i + 1) begin: l_cordic_steps
   // If phase is negative, rotate CW, otherwise CCW
-  always_comb x[i+1] = (p[i][22]) ? x[i] + (y[i] >>> (i+1)) : x[i] - (y[i] >>> (i+1));
-  always_comb y[i+1] = (p[i][22]) ? y[i] - (x[i] >>> (i+1)) : y[i] + (x[i] >>> (i+1));
-  always_comb p[i+1] = (p[i][22]) ? p[i] + cordic_angle[i] : p[i] - cordic_angle[i];
+  always_comb
+    if (p[i][22]) begin
+      x[i+1] = x[i] + (y[i] >>> (i+1));
+      y[i+1] = y[i] - (x[i] >>> (i+1));
+      p[i+1] = p[i] + cordic_angle[i];
+    end else begin
+      x[i+1] = x[i] - (y[i] >>> (i+1));
+      y[i+1] = y[i] + (x[i] >>> (i+1));
+      p[i+1] = p[i] - cordic_angle[i];
+    end
 end
+/* verilator lint_on ALWCOMBORDER */
 
 always_comb
-  if (i_qph > 16'd65508)   o_sin = 16'hFFFF;
+  if (i_qph > 16'd65508)   o_sin = 16'hFFFE;
   else if (i_qph < 16'd32) o_sin = i_qph + (i_qph >> 1);
   else                     o_sin = y[19][17:2];
 
