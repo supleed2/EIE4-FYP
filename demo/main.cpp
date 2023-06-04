@@ -10,6 +10,7 @@
 #include <libbase/console.h>
 #include <libbase/uart.h>
 
+#include "can"
 #include "note"
 
 /*-----------------------------------------------------------------------*/
@@ -98,6 +99,12 @@ static void help(void) {
 #endif
 #ifdef CSR_DAC_VOL_BASE
 	puts("volume             - Get / Set DAC Volume");
+#endif
+#ifdef CSR_CAN_BASE
+	puts("can_id             - Get / Set CAN ID");
+	puts("can_mask           - Get / Set CAN Mask");
+	puts("can_read           - Receive CAN Frames and print (delay in s)");
+	puts("can_watch          - Watch CAN Frames at 2Hz");
 #endif
 }
 
@@ -223,6 +230,72 @@ static void dac_vol_cmd(char **val) {
 }
 #endif
 
+#ifdef CSR_CAN_BASE
+static void can_id_cmd(char **val) {
+	char *token = get_token(val);
+	if (token == *val) {
+		printf("Current CAN ID (filter) is 0x%03X (max 0x7FF)\n", can_id_read());
+	} else {
+		int value = (int)strtol(token, NULL, 0);
+		printf("Setting CAN ID (filter) to 0x%03X (max 0x7FF)\n", value);
+		can_id_write(value);
+	}
+}
+
+static void can_mask_cmd(char **val) {
+	char *token = get_token(val);
+	if (token == *val) {
+		printf("Current CAN mask is 0x%03X (max 0x7FF)\n", can_mask_read());
+	} else {
+		int value = (int)strtol(token, NULL, 0);
+		printf("Setting CAN mask to 0x%03X (max 0x7FF)\n", value);
+		can_mask_write(value);
+	}
+}
+
+static void can_read_cmd(char **val) {
+	char *token = get_token(val);
+	int loop_delay;
+	if (token == *val) {
+		loop_delay = 10;
+	} else {
+		loop_delay = (int)strtol(token, NULL, 0) * 10;
+	}
+	while (true) {
+		can_frame frame = can_read();
+		printf("CAN ID: 0x%03X, data:", frame.id);
+		for (int i = 0; i < 8; i++) {
+			printf(" 0x%02X", frame.data[i]);
+		}
+		printf("\n");
+		for (int i = 0; i < loop_delay; i++) {
+			if (readchar_nonblock()) {
+				getchar();
+				return;
+			}
+			busy_wait(100);
+		}
+	}
+}
+
+static void can_watch_cmd() {
+	while (true) {
+		can_frame frame = can_read();
+		printf("CAN ID: 0x%03X, data:", frame.id);
+		for (int i = 0; i < 8; i++) {
+			printf(" 0x%02X", frame.data[i]);
+		}
+		printf("\r");
+		if (readchar_nonblock()) {
+			getchar();
+			printf("\n");
+			return;
+		}
+		busy_wait(200);
+	}
+}
+#endif
+
 void donut(void);
 
 static void donut_cmd(void) {
@@ -271,6 +344,16 @@ static void console_service(void) {
 #ifdef CSR_DAC_VOL_BASE
 	else if (strcmp(token, "volume") == 0)
 		dac_vol_cmd(&str);
+#endif
+#ifdef CSR_CAN_BASE
+	else if (strcmp(token, "can_id") == 0)
+		can_id_cmd(&str);
+	else if (strcmp(token, "can_mask") == 0)
+		can_mask_cmd(&str);
+	else if (strcmp(token, "can_read") == 0)
+		can_read_cmd(&str);
+	else if (strcmp(token, "can_watch") == 0)
+		can_watch_cmd();
 #endif
 	prompt();
 }
