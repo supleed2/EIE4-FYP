@@ -46,7 +46,8 @@ always_comb triangle = saw[15] ? {~saw[14:0], 1'b1} : {saw[14:0], 1'b0}; // Tria
 
 logic [15:0] sine;
 saw2sin m_saw2sin // Instantiate saw2sin module
-( .i_saw(saw)
+( .i_clk(i_clk48)
+, .i_saw(saw)
 , .o_sin(sine)
 );
 
