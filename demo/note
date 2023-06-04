@@ -13,6 +13,19 @@ void wave(uint32_t wave);
 
 #define NOTE_NONE 0
 
+#define NOTE_C1 33
+#define NOTE_C1S 35
+#define NOTE_D1 37
+#define NOTE_D1S 39
+#define NOTE_E1 41
+#define NOTE_F1 44
+#define NOTE_F1S 46
+#define NOTE_G1 49
+#define NOTE_G1S 52
+#define NOTE_A1 55
+#define NOTE_A1S 58
+#define NOTE_B1 62
+
 #define NOTE_C2 65
 #define NOTE_C2S 69
 #define NOTE_D2 73
@@ -79,6 +92,17 @@ void wave(uint32_t wave);
 #define NOTE_B6 1976
 
 #define NOTE_C7 2093
+#define NOTE_C7S 2217
+#define NOTE_D7 2349
+#define NOTE_D7S 2489
+#define NOTE_E7 2637
+#define NOTE_F7 2794
+#define NOTE_F7S 2960
+#define NOTE_G7 3136
+#define NOTE_G7S 3322
+#define NOTE_A7 3520
+#define NOTE_A7S 3729
+#define NOTE_B7 3951
 
 // Waves
 
