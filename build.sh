@@ -20,7 +20,7 @@ read -p "Flash OrangeCrab? [y/N]" -n 1 -r FLASH_OC
 if [[ $FLASH_OC =~ ^[Yy]$ ]]; then
     echo # Move to next line
     set +e
-    dfu-util -D gsd_orangecrab.dfu
+    dfu-util -w -D gsd_orangecrab.dfu
     set -e
 else echo "Skipping Reflash"
 fi
