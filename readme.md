@@ -9,6 +9,12 @@
 
 ### Useful links
 
+- CAN Bus Implementation
+  - [CAN bus: Base Frame Format - Wikipedia](https://en.wikipedia.org/wiki/CAN_bus#Base_frame_format)
+  - [Texas Instruments: Introduction to CAN](https://www.ti.com/lit/an/sloa101b/sloa101b.pdf)
+  - [CAN Tx Frame Implementation using Verilog](https://jusst.org/wp-content/uploads/2021/07/CAN-Tx-Frame.pdf), reference for timing diagrams?
+  - [Datasheet for CAN Transceiver](https://www.digikey.co.uk/en/products/detail/microchip-technology/ATA6561-GAQW-N/9453180)
+  - [Understanding Microchip’s CAN Module Bit Timing](https://ww1.microchip.com/downloads/en/Appnotes/00754.pdf)
 - Sine Approximation for Sawtooth - Sine Conversion
   - Polynomial Approximation
     - [Desmos Demonstration (Screenshot)](sine_poly_approx.png)
