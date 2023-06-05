@@ -6,12 +6,15 @@
   - [Using LiteEth on ECP5](https://github.com/enjoy-digital/liteeth/issues/66)
   - [Adding HW modules](https://github.com/enjoy-digital/litex/issues/746), lots more info in issue
     - Possible useful info in [soc.py](litex/litex/soc/integration/soc.py), Lines 1311 - 2106
+- [CORDIC Block Development Repository](https://github.com/supleed2/cordic)
 
 ### Useful links
 
+- [FreeRTOS Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html)
 - CAN Bus Implementation
   - [CAN bus: Base Frame Format - Wikipedia](https://en.wikipedia.org/wiki/CAN_bus#Base_frame_format)
   - [Texas Instruments: Introduction to CAN](https://www.ti.com/lit/an/sloa101b/sloa101b.pdf)
+  - [Bosch CAN Specification 2.0](http://esd.cs.ucr.edu/webres/can20.pdf)
   - [CAN Tx Frame Implementation using Verilog](https://jusst.org/wp-content/uploads/2021/07/CAN-Tx-Frame.pdf), reference for timing diagrams?
   - [Datasheet for CAN Transceiver](https://www.digikey.co.uk/en/products/detail/microchip-technology/ATA6561-GAQW-N/9453180)
   - [Understanding Microchip’s CAN Module Bit Timing](https://ww1.microchip.com/downloads/en/Appnotes/00754.pdf)

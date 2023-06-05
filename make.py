@@ -28,7 +28,6 @@ from litedram.phy import ECP5DDRPHY
 
 from dacVolume import DacVolume
 from testCAN import CanReceiver
-from testLED import TestLed
 from testRGB import TestRgb
 from testSaw import TestSaw
 
@@ -199,18 +198,14 @@ class BaseSoC(SoCCore):
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:
-            self.ledchaser = LedChaser(
-                pads         = platform.request_all("user_led"),
-                sys_clk_freq = sys_clk_freq
+            # self.ledchaser = LedChaser(
+            #     pads         = platform.request_all("user_led"),
+            #     sys_clk_freq = sys_clk_freq
+            # )
+            self.leds = TestRgb(
+                platform = platform,
+                pads     = platform.request_all("user_led")
             )
-            # self.leds = TestLed(
-            #     platform = platform,
-            #     pads     = platform.request_all("user_led")
-            # )
-            # self.leds = TestRgb(
-            #     platform = platform,
-            #     pads     = platform.request_all("user_led")
-            # )
 
         # GPIO Pins --------------------------------------------------------------------------------
         platform.add_extension([
