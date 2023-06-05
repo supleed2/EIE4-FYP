@@ -251,30 +251,36 @@ class BaseSoC(SoCCore):
         #     pads     = platform.request("dac_ctrl")
         # )
 
+        # Propagation Delay Test -------------------------------------------------------------------
+        from testProp import TestProp
+        self.proptest = TestProp(platform = platform)
+
         # LiteScope Analyzer -----------------------------------------------------------------------
         self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
-            self.can.can_rx,
-            self.can.can_tx,
-            # self.dac_vol.volume.re,
-            # self.dac_vol.volume.storage,
-            # self.dac_vol.m_sel_n,
-            # self.dac_vol.m_clock,
-            # self.dac_vol.m_data,
-            self.audio.targ0.re,
-            # self.audio.targ0.storage,
-            self.audio.wave0.re,
-            # self.audio.wave0.storage,
-            self.audio.backpressure_48,
-            # self.audio.sample_48,
-            self.audio.audioready_48,
-            self.audio.readrequest_36,
-            # self.audio.sample_36,
-            self.audio.fifoempty_36,
-            self.audio.dac_lrck,
-            self.audio.dac_bck,
-            self.audio.dac_data,
+            self.proptest.i_saw,
+            self.proptest.o_sin,
+            # self.can.can_rx,
+            # self.can.can_tx,
+            # # self.dac_vol.volume.re,
+            # # self.dac_vol.volume.storage,
+            # # self.dac_vol.m_sel_n,
+            # # self.dac_vol.m_clock,
+            # # self.dac_vol.m_data,
+            # self.audio.targ0.re,
+            # # self.audio.targ0.storage,
+            # self.audio.wave0.re,
+            # # self.audio.wave0.storage,
+            # self.audio.backpressure_48,
+            # # self.audio.sample_48,
+            # self.audio.audioready_48,
+            # self.audio.readrequest_36,
+            # # self.audio.sample_36,
+            # self.audio.fifoempty_36,
+            # self.audio.dac_lrck,
+            # self.audio.dac_bck,
+            # self.audio.dac_data,
         ]
         from math import ceil, floor
         analyzer_depth = floor(190_000 / ((ceil(sum([s.nbits for s in analyzer_signals]) / 16)) * 16))
