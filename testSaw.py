@@ -1,7 +1,6 @@
 from migen import *
 
 from litex.soc.interconnect.csr import *
-from litex.soc.interconnect.stream import AsyncFIFO
 from migen.genlib.fifo import AsyncFIFO as MigenAsyncFIFO
 from litex.soc.integration.doc import ModuleDoc
 

@@ -30,6 +30,6 @@ always_ff @(posedge i_clk) sin <= reverse
   : (invert ? ~{1'b1, qsin[15:0]} + 17'd2  // Normal, Invert
             : {1'b1, qsin[15:0]} + 17'd0); // Normal, Normal
 
-always_comb o_sin = sin[16:1];
+always_comb o_sin = {~sin[16], sin[15:1]};
 
 endmodule

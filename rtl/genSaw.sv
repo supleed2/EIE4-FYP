@@ -42,7 +42,7 @@ logic [15:0] square;
 always_comb square = {~saw[15], {15{saw[15]}}}; // Square wave is MSB of saw
 
 logic [15:0] triangle;
-always_comb triangle = saw[15] ? {~saw[14:0], 1'b1} : {saw[14:0], 1'b0}; // Triangle wave calc
+always_comb triangle = saw[15] ? {saw[14], ~saw[13:0], 1'b1} : {~saw[14], saw[13:0], 1'b0}; // Triangle wave calc
 
 logic [15:0] sine;
 saw2sin m_saw2sin // Instantiate saw2sin module
@@ -55,8 +55,8 @@ always_comb // Select output waveform
   case (i_wave[1:0])
     2'd0: o_sample = saw;
     2'd1: o_sample = square;
-    2'd2: o_sample = {~triangle[15], triangle[14:0]};
-    2'd3: o_sample = {~sine[15], sine[14:0]};
+    2'd2: o_sample = triangle;
+    2'd3: o_sample = sine;
   endcase
 
 endmodule
