@@ -10,8 +10,9 @@
 #include <libbase/console.h>
 #include <libbase/uart.h>
 
+#include "audio"
 #include "can"
-#include "note"
+#include <cstdlib>
 
 /*-----------------------------------------------------------------------*/
 /* Uart                                                                  */
@@ -90,10 +91,10 @@ static void help(void) {
 	puts("leds               - Led set demo");
 #endif
 #ifdef CSR_AUDIO_BASE
-	puts("saw                - Sawtooth Wave demo");
-	puts("square             - Square Wave demo");
-	puts("triangle           - Triangle Wave demo");
-	puts("sine               - Sine Wave demo");
+	puts("saw                - Sawtooth Wave (osc, freq)");
+	puts("square             - Square Wave (osc, freq)");
+	puts("triangle           - Triangle Wave (osc, freq)");
+	puts("sine               - Sine Wave (osc, freq)");
 	puts("imperial           - Imperial March demo");
 	puts("roll               - Music demo");
 #endif
@@ -134,90 +135,90 @@ static void leds_cmd(char **val) {
 #endif
 #ifdef CSR_AUDIO_BASE
 static void saw_cmd(char **val) {
-	int value = (int)strtol(get_token(val), NULL, 0);
-	printf("Setting Oscillator 0 to Sawtooth: %dHz\n", value);
-	wave(WAVE_SAW);
-	audio_targ0_write(value);
+	uint32_t osc = static_cast<uint32_t>(strtol(get_token(val), NULL, 10));
+	float freq = strtof(get_token(val), NULL);
+	printf("Setting Oscillator %d to Sawtooth: %.2fHz\n", osc, freq);
+	audio(osc, WAVE_SAWTOOTH, freq);
 }
 
 static void square_cmd(char **val) {
-	int value = (int)strtol(get_token(val), NULL, 0);
-	printf("Setting Oscillator 0 to Square: %dHz\n", value);
-	wave(WAVE_SQUARE);
-	audio_targ0_write(value);
+	uint32_t osc = static_cast<uint32_t>(strtol(get_token(val), NULL, 10));
+	float freq = strtof(get_token(val), NULL);
+	printf("Setting Oscillator %d to Square: %.2fHz\n", osc, freq);
+	audio(osc, WAVE_SQUARE, freq);
 }
 
 static void triangle_cmd(char **val) {
-	int value = (int)strtol(get_token(val), NULL, 0);
-	printf("Setting Oscillator 0 to Triangle: %dHz\n", value);
-	wave(WAVE_TRIANGLE);
-	audio_targ0_write(value);
+	uint32_t osc = static_cast<uint32_t>(strtol(get_token(val), NULL, 10));
+	float freq = strtof(get_token(val), NULL);
+	printf("Setting Oscillator %d to Triangle: %.2fHz\n", osc, freq);
+	audio(osc, WAVE_TRIANGLE, freq);
 }
 
 static void sine_cmd(char **val) {
-	int value = (int)strtol(get_token(val), NULL, 0);
-	printf("Setting Oscillator 0 to Sine: %dHz\n", value);
-	wave(WAVE_SINE);
-	audio_targ0_write(value);
+	uint32_t osc = static_cast<uint32_t>(strtol(get_token(val), NULL, 10));
+	float freq = strtof(get_token(val), NULL);
+	printf("Setting Oscillator %d to Sine: %.2fHz\n", osc, freq);
+	audio(osc, WAVE_SINE, freq);
 }
 
 static void imperial_cmd() {
-	note(NOTE_G4, 400);
-	note(NOTE_NONE, 400);
-	note(NOTE_G4, 400);
-	note(NOTE_NONE, 400);
-	note(NOTE_G4, 600);
-	note(NOTE_NONE, 600);
-	note(NOTE_D4S, 200);
-	note(NOTE_A4S, 200);
-	note(NOTE_G4, 600);
-	note(NOTE_NONE, 200);
-	note(NOTE_D4S, 400);
-	note(NOTE_NONE, 200);
-	note(NOTE_A4S, 200);
-	note(NOTE_G4, 1000);
-	note(NOTE_D4S, 600);
-	note(NOTE_NONE, 200);
-	note(NOTE_D5, 600);
-	note(NOTE_NONE, 200);
-	note(NOTE_D5, 600);
-	note(NOTE_NONE, 200);
-	note(NOTE_D5, 600);
-	note(NOTE_NONE, 200);
-	note(NOTE_D5S, 400);
-	note(NOTE_NONE, 200);
-	note(NOTE_A4S, 200);
-	note(NOTE_F4S, 600);
-	note(NOTE_NONE, 200);
-	note(NOTE_D4S, 400);
-	note(NOTE_NONE, 200);
-	note(NOTE_A4S, 200);
-	note(NOTE_G4, 800);
+	timed_freq(0, NOTE_G4, 400);
+	timed_freq(0, NOTE_NONE, 400);
+	timed_freq(0, NOTE_G4, 400);
+	timed_freq(0, NOTE_NONE, 400);
+	timed_freq(0, NOTE_G4, 600);
+	timed_freq(0, NOTE_NONE, 600);
+	timed_freq(0, NOTE_D4S, 200);
+	timed_freq(0, NOTE_A4S, 200);
+	timed_freq(0, NOTE_G4, 600);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_D4S, 400);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_A4S, 200);
+	timed_freq(0, NOTE_G4, 1000);
+	timed_freq(0, NOTE_D4S, 600);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_D5, 600);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_D5, 600);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_D5, 600);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_D5S, 400);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_A4S, 200);
+	timed_freq(0, NOTE_F4S, 600);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_D4S, 400);
+	timed_freq(0, NOTE_NONE, 200);
+	timed_freq(0, NOTE_A4S, 200);
+	timed_freq(0, NOTE_G4, 800);
 }
 
 static void roll_cmd() {
-	note(NOTE_C4S, 450);
-	note(NOTE_D4S, 600);
-	note(NOTE_G3S, 150);
-	note(NOTE_D4S, 450);
-	note(NOTE_F4, 450);
-	note(NOTE_G4S, 90);
-	note(NOTE_F4S, 90);
-	note(NOTE_F4, 90);
-	note(NOTE_C4S, 510);
-	note(NOTE_D4S, 600);
-	note(NOTE_G3S, 1500);
-	note(NOTE_C4S, 450);
-	note(NOTE_D4S, 600);
-	note(NOTE_G3S, 150);
-	note(NOTE_D4S, 450);
-	note(NOTE_F4, 450);
-	note(NOTE_G4S, 90);
-	note(NOTE_F4S, 90);
-	note(NOTE_F4, 90);
-	note(NOTE_C4S, 510);
-	note(NOTE_D4S, 600);
-	note(NOTE_G3S, 1500);
+	timed_freq(0, NOTE_C4S, 450);
+	timed_freq(0, NOTE_D4S, 600);
+	timed_freq(0, NOTE_G3S, 150);
+	timed_freq(0, NOTE_D4S, 450);
+	timed_freq(0, NOTE_F4, 450);
+	timed_freq(0, NOTE_G4S, 90);
+	timed_freq(0, NOTE_F4S, 90);
+	timed_freq(0, NOTE_F4, 90);
+	timed_freq(0, NOTE_C4S, 510);
+	timed_freq(0, NOTE_D4S, 600);
+	timed_freq(0, NOTE_G3S, 1500);
+	timed_freq(0, NOTE_C4S, 450);
+	timed_freq(0, NOTE_D4S, 600);
+	timed_freq(0, NOTE_G3S, 150);
+	timed_freq(0, NOTE_D4S, 450);
+	timed_freq(0, NOTE_F4, 450);
+	timed_freq(0, NOTE_G4S, 90);
+	timed_freq(0, NOTE_F4S, 90);
+	timed_freq(0, NOTE_F4, 90);
+	timed_freq(0, NOTE_C4S, 510);
+	timed_freq(0, NOTE_D4S, 600);
+	timed_freq(0, NOTE_G3S, 1500);
 }
 #endif
 #ifdef CSR_DAC_VOL_BASE
@@ -300,9 +301,9 @@ static void can_watch_cmd() {
 
 #ifdef CSR_AUDIO_BASE
 const char *notes[85] = {"None", "C1", "C1#", "D1", "D1#", "E1", "F1", "F1#", "G1", "G1#", "A1", "A1#", "B1", "C2", "C2#", "D2", "D2#", "E2", "F2", "F2#", "G2", "G2#", "A2", "A2#", "B2", "C3", "C3#", "D3", "D3#", "E3", "F3", "F3#", "G3", "G3#", "A3", "A3#", "B3", "C4", "C4#", "D4", "D4#", "E4", "F4", "F4#", "G4", "G4#", "A4", "A4#", "B4", "C5", "C5#", "D5", "D5#", "E5", "F5", "F5#", "G5", "G5#", "A5", "A5#", "B5", "C6", "C6#", "D6", "D6#", "E6", "F6", "F6#", "G6", "G6#", "A6", "A6#", "B6", "C7", "C7#", "D7", "D7#", "E7", "F7", "F7#", "G7", "G7#", "A7", "A7#", "B7"};
-const int freqs[85] = {0, 33, 35, 37, 39, 41, 44, 46, 49, 52, 55, 58, 62, 65, 69, 73, 78, 82, 87, 93, 98, 104, 110, 117, 123, 131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247, 262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494, 523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047, 1109, 1175, 1245, 1319, 1397, 1480, 1568, 1661, 1760, 1865, 1976, 2093, 2217, 2349, 2489, 2637, 2794, 2960, 3136, 3322, 3520, 3729, 3951};
+const float freqs[85] = {0.00f, 32.70f, 34.65f, 36.71f, 38.89f, 41.20f, 43.65f, 46.25f, 49.00f, 51.91f, 55.00f, 58.27f, 61.74f, 65.41f, 69.30f, 73.42f, 77.78f, 82.41f, 87.31f, 92.50f, 98.00f, 103.83f, 110.00f, 116.54f, 123.47f, 130.81f, 138.59f, 146.83f, 155.56f, 164.81f, 174.61f, 185.00f, 196.00f, 207.65f, 220.00f, 233.08f, 246.94f, 261.63f, 277.18f, 293.66f, 311.13f, 329.63f, 349.23f, 369.99f, 392.00f, 415.30f, 440.00f, 466.16f, 493.88f, 523.25f, 554.37f, 587.33f, 622.25f, 659.25f, 698.46f, 739.99f, 783.99f, 830.61f, 880.00f, 932.33f, 987.77f, 1046.50f, 1108.73f, 1174.66f, 1244.51f, 1318.51f, 1396.91f, 1479.98f, 1567.98f, 1661.22f, 1760.00f, 1864.66f, 1975.53f, 2093.00f, 2217.46f, 2349.32f, 2489.02f, 2637.02f, 2793.83f, 2959.96f, 3135.96f, 3322.44f, 3520.00f, 3729.31f, 3951.07f};
 static void can_listen_cmd() {
-	wave(WAVE_SINE);
+	set_wave(0, WAVE_SINE);
 	int old_note = 0;
 	while (true) {
 		can_frame frame = can_read();
@@ -310,7 +311,7 @@ static void can_listen_cmd() {
 			case 'P': {
 				int note = (frame.data[1] - 1) * 12 + frame.data[2];
 				if (note != old_note) {
-					audio_targ0_write(freqs[note]);
+					set_freq(0, freqs[note]);
 					printf("Playing note %s\n", notes[note]);
 					old_note = note;
 				}
@@ -321,7 +322,7 @@ static void can_listen_cmd() {
 				if (old_note != 0) {
 					printf("Stopping notes\n");
 					old_note = 0;
-					audio_targ0_write(0);
+					set_freq(0, 0);
 				}
 				break;
 			}
