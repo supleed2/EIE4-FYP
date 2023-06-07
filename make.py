@@ -5,9 +5,6 @@
 # Copyright (c) Greg Davill <greg.davill@gmail.com>
 # SPDX-License-Identifier: BSD-2-Clause
 
-import os
-import sys
-
 from migen import *
 from migen.genlib.misc import WaitTimer
 from migen.genlib.resetsync import AsyncResetSynchronizer
@@ -25,11 +22,6 @@ from litex.soc.cores.led import LedChaser
 
 from litedram.modules import MT41K64M16, MT41K128M16, MT41K256M16, MT41K512M16
 from litedram.phy import ECP5DDRPHY
-
-from dacVolume import DacVolume
-from testCAN import CanReceiver
-from testRGB import TestRgb
-from testSaw import TestSaw
 
 # CRG ---------------------------------------------------------------------------------------------
 
@@ -202,6 +194,7 @@ class BaseSoC(SoCCore):
             #     pads         = platform.request_all("user_led"),
             #     sys_clk_freq = sys_clk_freq
             # )
+            from testRGB import TestRgb
             self.leds = TestRgb(
                 platform = platform,
                 pads     = platform.request_all("user_led")
@@ -235,52 +228,55 @@ class BaseSoC(SoCCore):
         ])
 
         # CAN Receiver Block -----------------------------------------------------------------------
+        from testCAN import CanReceiver
         self.can = CanReceiver(
             platform = platform,
             pads     = platform.request("can")
         )
 
         # DAC Control / Audio Blocks ---------------------------------------------------------------
+        from testSaw import TestSaw
         self.audio = TestSaw(
             platform = platform,
             pads     = platform.request("dac_pcm")
         )
 
+        # from dacVolume import DacVolume
         # self.dac_vol = DacVolume(
         #     platform = platform,
         #     pads     = platform.request("dac_ctrl")
         # )
 
         # Propagation Delay Test -------------------------------------------------------------------
-        from testProp import TestProp
-        self.proptest = TestProp(platform = platform)
+        # from testProp import TestProp
+        # self.proptest = TestProp(platform = platform)
 
         # LiteScope Analyzer -----------------------------------------------------------------------
         self.add_uartbone(name="debug_uart", baudrate=921600)
         from litescope import LiteScopeAnalyzer
         analyzer_signals = [
-            self.proptest.i_saw,
-            self.proptest.o_sin,
-            # self.can.can_rx,
-            # self.can.can_tx,
-            # # self.dac_vol.volume.re,
-            # # self.dac_vol.volume.storage,
-            # # self.dac_vol.m_sel_n,
-            # # self.dac_vol.m_clock,
-            # # self.dac_vol.m_data,
-            # self.audio.targ0.re,
-            # # self.audio.targ0.storage,
-            # self.audio.wave0.re,
-            # # self.audio.wave0.storage,
-            # self.audio.backpressure_48,
-            # # self.audio.sample_48,
-            # self.audio.audioready_48,
-            # self.audio.readrequest_36,
-            # # self.audio.sample_36,
-            # self.audio.fifoempty_36,
-            # self.audio.dac_lrck,
-            # self.audio.dac_bck,
-            # self.audio.dac_data,
+            # self.proptest.i_saw,
+            # self.proptest.o_sin,
+            self.can.can_rx,
+            self.can.can_tx,
+            # self.dac_vol.volume.re,
+            # self.dac_vol.volume.storage,
+            # self.dac_vol.m_sel_n,
+            # self.dac_vol.m_clock,
+            # self.dac_vol.m_data,
+            self.audio.targ0.re,
+            # self.audio.targ0.storage,
+            self.audio.wave0.re,
+            # self.audio.wave0.storage,
+            self.audio.backpressure_48,
+            # self.audio.sample_48,
+            self.audio.audioready_48,
+            self.audio.readrequest_36,
+            # self.audio.sample_36,
+            self.audio.fifoempty_36,
+            self.audio.dac_lrck,
+            self.audio.dac_bck,
+            self.audio.dac_data,
         ]
         from math import ceil, floor
         analyzer_depth = floor(190_000 / ((ceil(sum([s.nbits for s in analyzer_signals]) / 16)) * 16))
