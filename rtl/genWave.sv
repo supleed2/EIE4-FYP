@@ -5,8 +5,7 @@ module genWave
 , input  var        i_rst48_n  // Active low reset
 , input  var        i_pause    // Pause sample generation (backpressure)
 , input  var [ 5:0] i_osc_sel  // Oscillator select, to update target freq / waveform
-, input  var [23:0] i_t_freq   // Target frequency for selected oscillator
-                               // TODO: update this to use fixed point decimal for better accuracy?
+, input  var [27:0] i_t_freq   // Target frequency for selected oscillator (24.4 fixed point)
 , input  var        i_tf_valid // Target frequency valid pulse (i_osc_sel must be set first)
 , input  var [ 7:0] i_wav_sel  // Waveform select for selected oscillator
 , input  var        i_ws_valid // Waveform select valid pulse (i_osc_sel must be set first)
@@ -35,7 +34,7 @@ always_comb o_pulse = clk_48k && !clk_48k_past; // Detect rising edge of 48kHz c
 
 // Per Oscillator Settings Capture #################################################################
 
-logic [23:0] t_freq [0:63];
+logic [27:0] t_freq [0:63];
 always_ff @(posedge i_clk48)
   if (i_tf_valid) t_freq[i_osc_sel] <= i_t_freq; // Capture target frequency
 
@@ -50,11 +49,11 @@ always_ff @(posedge i_clk48) // Count to 64 at 48MHz
   if (!i_rst48_n) ps_clk <= '0;         // Reset
   else            ps_clk <= ps_clk + 1; // Increment
 
-logic [23:0] int_phase_step; // Phase step calc from target frequency
-always_comb int_phase_step = (24'd699 * t_freq[ps_clk]); // 699 = (2^24 / 48000) * 2 (Approximately)
+logic [27:0] int_phase_step; // Phase step calc from target frequency
+always_comb int_phase_step = (28'd699 * t_freq[ps_clk]); // 699 = (2^24 / 48000) * 2 (Approximately)
 
-logic [15:0] phase_step [0:63]; // Shift step right correctly (2^9)
-always_ff @(posedge i_clk48) phase_step[ps_clk] <= {1'b0, int_phase_step[23:9]};
+logic [15:0] phase_step [0:63]; // Shift step right correctly (2^9) * (2^4) for fixed point
+always_ff @(posedge i_clk48) phase_step[ps_clk] <= {1'b0, int_phase_step[27:13]};
 
 // Per Oscillator Phase Generation #################################################################
 
