@@ -235,12 +235,16 @@ class BaseSoC(SoCCore):
         )
 
         # DAC Control / Audio Blocks ---------------------------------------------------------------
-        from testSaw import TestSaw
-        self.audio = TestSaw(
+        from testWave import TestWave
+        self.audio = TestWave(
             platform = platform,
             pads     = platform.request("dac_pcm")
         )
-
+        # from testSaw import TestSaw
+        # self.audio = TestSaw(
+        #     platform = platform,
+        #     pads     = platform.request("dac_pcm")
+        # )
         # from dacVolume import DacVolume
         # self.dac_vol = DacVolume(
         #     platform = platform,
@@ -264,10 +268,12 @@ class BaseSoC(SoCCore):
             # self.dac_vol.m_sel_n,
             # self.dac_vol.m_clock,
             # self.dac_vol.m_data,
-            self.audio.targ0.re,
-            # self.audio.targ0.storage,
-            self.audio.wave0.re,
-            # self.audio.wave0.storage,
+            self.audio.osc.re,
+            # self.audio.osc.storage,
+            self.audio.tf.re,
+            # self.audio.tf.storage,
+            self.audio.wav.re,
+            # self.audio.wav.storage,
             self.audio.backpressure_48,
             # self.audio.sample_48,
             self.audio.audioready_48,
