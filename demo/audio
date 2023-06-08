@@ -4,9 +4,21 @@
 #pragma once
 
 #ifdef CSR_AUDIO_BASE
+// Function Definition
+
+void reset_audio(void);
+
+void set_wave(uint32_t osc, uint32_t wave);
+
+void set_freq(uint32_t osc, uint32_t freq);
+
+void audio(uint32_t osc, uint32_t wave, uint32_t freq);
+
+void timed_freq(uint32_t osc, uint32_t freq, unsigned int duration_ms);
+
 // Waves
 
-enum wave_t {
+enum wave_t : uint32_t {
 	WAVE_SAWTOOTH,
 	WAVE_SQUARE,
 	WAVE_TRIANGLE,
@@ -15,7 +27,7 @@ enum wave_t {
 
 // Notes
 
-enum note_t {
+enum note_t : uint32_t {
 	NONE = 0,
 	C0 = 16,
 	C0S = 17,
@@ -126,16 +138,4 @@ enum note_t {
 	A8S = 7459,
 	B8 = 7902,
 };
-
-// Function Definition
-
-void reset_audio(void);
-
-void set_wave(uint32_t osc, wave_t wave);
-
-void set_freq(uint32_t osc, note_t freq);
-
-void audio(uint32_t osc, wave_t wave, note_t freq);
-
-void timed_freq(uint32_t osc, note_t freq, unsigned int duration_ms);
 #endif

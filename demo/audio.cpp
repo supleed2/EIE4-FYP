@@ -13,26 +13,26 @@ void reset_audio(void) {
 }
 
 // Set oscillator `osc` to waveform `wave`
-void set_wave(uint32_t osc, wave_t wave) {
+void set_wave(uint32_t osc, uint32_t wave) {
 	audio_osc_write(osc);
 	audio_wav_write(wave);
 }
 
 // Set oscillator `osc` to frequency `freq`Hz
-void set_freq(uint32_t osc, note_t freq) {
+void set_freq(uint32_t osc, uint32_t freq) {
 	audio_osc_write(osc);
 	audio_tf_write(freq);
 }
 
 // Set oscillator `osc` to waveform `wave` at frequency `freq`Hz
-void audio(uint32_t osc, wave_t wave, note_t freq) {
+void audio(uint32_t osc, uint32_t wave, uint32_t freq) {
 	audio_osc_write(osc);
 	audio_wav_write(wave);
 	audio_tf_write(freq);
 }
 
 // Set oscillator `osc` to waveform `wave` at frequency `freq`Hz for `ms` milliseconds
-void timed_freq(uint32_t osc, note_t freq, unsigned int ms) {
+void timed_freq(uint32_t osc, uint32_t freq, unsigned int ms) {
 	audio_osc_write(osc);
 	audio_tf_write(freq);
 	busy_wait(ms);
