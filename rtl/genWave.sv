@@ -127,8 +127,8 @@ always_comb shift = wv_cnt_1[6] ? 3'd7
                   : wv_cnt_1[0] ? 3'd1
                   : 3'd0;
 
-logic [23:0] samples_sum;
-always_comb samples_sum = samples_long[63] >> shift; // Shift output sample right to get normalised output
+logic [23:0] samples_sum; // Shift output sample right to get normalised output
+always_ff @(posedge i_clk48) samples_sum <= samples_long[63] >> shift;
 
 always_comb o_sample = samples_sum[15:0];    // Output sample is 16 bits
 
