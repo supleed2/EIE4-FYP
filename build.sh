@@ -11,7 +11,7 @@ if [[ $REBUILD =~ ^[Yy]$ ]]; then
     cp -r build/gsd_orangecrab/doc/_build/html docs/ && echo "Copied docs to project root"
 else echo "Skipping Rebuild"
 fi
-BUILD_DIR=`realpath -eL build/gsd_orangecrab/` WITH_CXX=1 make -C demo && echo "Built demo files"
+make -C demo && echo "Built demo files"
 mv demo/demo.bin kernel.bin && echo "Moved kernel binary to project root"
 rm -f demo/*.o demo/*.d demo/demo.elf demo/demo.elf.map && echo "Cleaned up build artifacts"
 read -p "Flash OrangeCrab? [y/N]" -n 1 -r FLASH_OC

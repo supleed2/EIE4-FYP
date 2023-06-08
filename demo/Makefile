@@ -1,4 +1,4 @@
-BUILD_DIR?=../build/
+BUILD_DIR?=../build/gsd_orangecrab/
 
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
