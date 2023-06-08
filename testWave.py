@@ -20,7 +20,7 @@ class TestWave(Module, AutoCSR, ModuleDoc):
 
         self.pads = pads
         self.osc = CSRStorage(size = 6, description = "Index of the Oscillator to Configure (0-63)")
-        self.tf = CSRStorage(size = 28, description = "Target Frequency of the phase accumulator (24.4 bit fixed point, ie x16)")
+        self.tf = CSRStorage(size = 24, description = "Target Frequency of the phase accumulator")
         self.wav = CSRStorage(size = 8, description = "Waveform to Output (Saw, Square, Triangle, Sine)")
 
         # 48MHz Domain Signals
