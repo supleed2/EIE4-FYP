@@ -4,19 +4,8 @@
 #pragma once
 
 #ifdef CSR_AUDIO_BASE
-// Function Definition
-
-void reset_audio(void);
-
-void set_wave(uint32_t osc, uint32_t wave);
-
-void set_freq(uint32_t osc, uint32_t freq);
-
-void audio(uint32_t osc, uint32_t wave, uint32_t freq);
-
-void timed_freq(uint32_t osc, uint32_t freq, unsigned int duration_ms);
-
 // Waves
+
 enum wave_t {
 	WAVE_SAWTOOTH,
 	WAVE_SQUARE,
@@ -25,122 +14,128 @@ enum wave_t {
 };
 
 // Notes
-#define NOTE_NONE 0
 
-#define NOTE_C0 16.35f
-#define NOTE_C0S 17.32f
-#define NOTE_D0 18.35f
-#define NOTE_D0S 19.45f
-#define NOTE_E0 20.60f
-#define NOTE_F0 21.83f
-#define NOTE_F0S 23.12f
-#define NOTE_G0 24.50f
-#define NOTE_G0S 25.96f
-#define NOTE_A0 27.50f
-#define NOTE_A0S 29.14f
-#define NOTE_B0 30.87f
+enum note_t {
+	NONE = 0,
+	C0 = 16,
+	C0S = 17,
+	D0 = 18,
+	D0S = 19,
+	E0 = 21,
+	F0 = 22,
+	F0S = 23,
+	G0 = 25,
+	G0S = 26,
+	A0 = 28,
+	A0S = 29,
+	B0 = 31,
+	C1 = 33,
+	C1S = 35,
+	D1 = 37,
+	D1S = 39,
+	E1 = 41,
+	F1 = 44,
+	F1S = 46,
+	G1 = 49,
+	G1S = 52,
+	A1 = 55,
+	A1S = 58,
+	B1 = 62,
+	C2 = 65,
+	C2S = 69,
+	D2 = 73,
+	D2S = 78,
+	E2 = 82,
+	F2 = 87,
+	F2S = 93,
+	G2 = 98,
+	G2S = 104,
+	A2 = 110,
+	A2S = 117,
+	B2 = 123,
+	C3 = 131,
+	C3S = 139,
+	D3 = 147,
+	D3S = 156,
+	E3 = 165,
+	F3 = 175,
+	F3S = 185,
+	G3 = 196,
+	G3S = 208,
+	A3 = 220,
+	A3S = 233,
+	B3 = 247,
+	C4 = 262,
+	C4S = 277,
+	D4 = 294,
+	D4S = 311,
+	E4 = 330,
+	F4 = 349,
+	F4S = 370,
+	G4 = 392,
+	G4S = 415,
+	A4 = 440,
+	A4S = 466,
+	B4 = 494,
+	C5 = 523,
+	C5S = 554,
+	D5 = 587,
+	D5S = 622,
+	E5 = 659,
+	F5 = 698,
+	F5S = 740,
+	G5 = 784,
+	G5S = 831,
+	A5 = 880,
+	A5S = 932,
+	B5 = 988,
+	C6 = 1047,
+	C6S = 1109,
+	D6 = 1175,
+	D6S = 1245,
+	E6 = 1319,
+	F6 = 1397,
+	F6S = 1480,
+	G6 = 1568,
+	G6S = 1661,
+	A6 = 1760,
+	A6S = 1865,
+	B6 = 1976,
+	C7 = 2093,
+	C7S = 2217,
+	D7 = 2349,
+	D7S = 2489,
+	E7 = 2637,
+	F7 = 2794,
+	F7S = 2960,
+	G7 = 3136,
+	G7S = 3322,
+	A7 = 3520,
+	A7S = 3729,
+	B7 = 3951,
+	C8 = 4186,
+	C8S = 4436,
+	D8 = 4699,
+	D8S = 4978,
+	E8 = 5274,
+	F8 = 5588,
+	F8S = 5920,
+	G8 = 6272,
+	G8S = 6645,
+	A8 = 7040,
+	A8S = 7459,
+	B8 = 7902,
+};
 
-#define NOTE_C1 32.70f
-#define NOTE_C1S 34.65f
-#define NOTE_D1 36.71f
-#define NOTE_D1S 38.89f
-#define NOTE_E1 41.20f
-#define NOTE_F1 43.65f
-#define NOTE_F1S 46.25f
-#define NOTE_G1 49.00f
-#define NOTE_G1S 51.91f
-#define NOTE_A1 55.00f
-#define NOTE_A1S 58.27f
-#define NOTE_B1 61.74f
+// Function Definition
 
-#define NOTE_C2 65.41f
-#define NOTE_C2S 69.30f
-#define NOTE_D2 73.42f
-#define NOTE_D2S 77.78f
-#define NOTE_E2 82.41f
-#define NOTE_F2 87.31f
-#define NOTE_F2S 92.50f
-#define NOTE_G2 98.00f
-#define NOTE_G2S 103.83f
-#define NOTE_A2 110.00f
-#define NOTE_A2S 116.54f
-#define NOTE_B2 123.47f
+void reset_audio(void);
 
-#define NOTE_C3 130.81f
-#define NOTE_C3S 138.59f
-#define NOTE_D3 146.83f
-#define NOTE_D3S 155.56f
-#define NOTE_E3 164.81f
-#define NOTE_F3 174.61f
-#define NOTE_F3S 185.00f
-#define NOTE_G3 196.00f
-#define NOTE_G3S 207.65f
-#define NOTE_A3 220.00f
-#define NOTE_A3S 233.08f
-#define NOTE_B3 246.94f
+void set_wave(uint32_t osc, wave_t wave);
 
-#define NOTE_C4 261.63f
-#define NOTE_C4S 277.18f
-#define NOTE_D4 293.66f
-#define NOTE_D4S 311.13f
-#define NOTE_E4 329.63f
-#define NOTE_F4 349.23f
-#define NOTE_F4S 369.99f
-#define NOTE_G4 392.00f
-#define NOTE_G4S 415.30f
-#define NOTE_A4 440.00f
-#define NOTE_A4S 466.16f
-#define NOTE_B4 493.88f
+void set_freq(uint32_t osc, note_t freq);
 
-#define NOTE_C5 523.25f
-#define NOTE_C5S 554.37f
-#define NOTE_D5 587.33f
-#define NOTE_D5S 622.25f
-#define NOTE_E5 659.25f
-#define NOTE_F5 698.46f
-#define NOTE_F5S 739.99f
-#define NOTE_G5 783.99f
-#define NOTE_G5S 830.61f
-#define NOTE_A5 880.00f
-#define NOTE_A5S 932.33f
-#define NOTE_B5 987.77f
+void audio(uint32_t osc, wave_t wave, note_t freq);
 
-#define NOTE_C6 1046.50f
-#define NOTE_C6S 1108.73f
-#define NOTE_D6 1174.66f
-#define NOTE_D6S 1244.51f
-#define NOTE_E6 1318.51f
-#define NOTE_F6 1396.91f
-#define NOTE_F6S 1479.98f
-#define NOTE_G6 1567.98f
-#define NOTE_G6S 1661.22f
-#define NOTE_A6 1760.00f
-#define NOTE_A6S 1864.66f
-#define NOTE_B6 1975.53f
-
-#define NOTE_C7 2093.00f
-#define NOTE_C7S 2217.46f
-#define NOTE_D7 2349.32f
-#define NOTE_D7S 2489.02f
-#define NOTE_E7 2637.02f
-#define NOTE_F7 2793.83f
-#define NOTE_F7S 2959.96f
-#define NOTE_G7 3135.96f
-#define NOTE_G7S 3322.44f
-#define NOTE_A7 3520.00f
-#define NOTE_A7S 3729.31f
-#define NOTE_B7 3951.07f
-
-#define NOTE_C8 4186.01f
-#define NOTE_C8S 4434.92f
-#define NOTE_D8 4698.63f
-#define NOTE_D8S 4978.03f
-#define NOTE_E8 5274.04f
-#define NOTE_F8 5587.65f
-#define NOTE_F8S 5919.91f
-#define NOTE_G8 6271.93f
-#define NOTE_G8S 6644.88f
-#define NOTE_A8 7040.00f
-#define NOTE_A8S 7458.62f
-#define NOTE_B8 7902.13f
+void timed_freq(uint32_t osc, note_t freq, unsigned int duration_ms);
 #endif
