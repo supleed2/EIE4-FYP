@@ -103,7 +103,7 @@ always_ff @(posedge i_clk48) if ((clk_div[1:0] == 2'd3) && osc_valid) samples[cl
 // Combine Samples into Single Sample ##############################################################
 
 logic [23:0] samples_long [0:63]; // Sum all samples to get final output sample
-always_comb samples_long[0] = {8'd0, samples[0]};
+always_comb samples_long[0] = {{8{samples[0][15]}}, samples[0]};
 for (genvar i = 1; i < 64; i++) begin: l_gen_sample_long
   always_comb samples_long[i] = samples_long[i-1] + {{8{samples[i][15]}}, samples[i]};
 end
