@@ -4,7 +4,7 @@ This directory provides a basic bare metal demo app that demonstrates how to com
 
 ## Build and Load over LiteX-Term
 
-The project is built with: ``BUILD_DIR=`realpath -eL build/gsd_orangecrab/` WITH_CXX=1 make -C demo``
+The project is built with: ``make -C demo``
 
 The project board does not provide extra interfaces to connect to the board, so serial is used here: `$ litex_term --kernel demo/demo.bin /dev/ttyACMX` (ACM due to the use of `usb_acm` UART)
 
