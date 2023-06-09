@@ -16,6 +16,7 @@ module can
 , output var [ 7:0] o_data5
 , output var [ 7:0] o_data6
 , output var [ 7:0] o_data7
+, output var        o_pulse
 );
 
 logic rx;
@@ -110,6 +111,11 @@ logic [63:0] data;
 always_ff @(posedge i_clk)
   if (!i_rst_n)                         data <= 64'd0;  // Reset
   else if (div_1m == 9'd1 && msg_valid) data <= b_data; // Update data if valid, at start of bit time
+
+always_ff @(posedge i_clk)
+  if (!i_rst_n)            o_pulse <= 1'b0;      // Reset
+  else if (div_1m == 9'd1) o_pulse <= msg_valid; // Output pulse if message valid, at start of bit time
+  else                     o_pulse <= 1'b0;      // Clear pulse after 1 cycle (48MHz)
 
 // Output data as individual bytes
 always_comb o_data0 = data[63:56];
