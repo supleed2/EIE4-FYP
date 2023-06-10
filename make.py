@@ -233,6 +233,7 @@ class BaseSoC(SoCCore):
             platform = platform,
             pads     = platform.request("can")
         )
+        self.irq.add("can", use_loc_if_exists=True)
 
         # DAC Control / Audio Blocks ---------------------------------------------------------------
         from testWave import TestWave

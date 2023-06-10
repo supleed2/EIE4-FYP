@@ -1,6 +1,7 @@
 from migen import *
 
 from litex.soc.interconnect.csr import *
+from litex.soc.interconnect.csr_eventmanager import EventManager, EventSourcePulse
 from litex.soc.integration.doc import ModuleDoc
 
 # CAN Receiver Module ------------------------------------------------------------------------------
@@ -27,10 +28,17 @@ class CanReceiver(Module, AutoCSR, ModuleDoc):
         self.rcv_data5 = CSRStatus(size = 8, description = "Received message data byte 5")
         self.rcv_data6 = CSRStatus(size = 8, description = "Received message data byte 6")
         self.rcv_data7 = CSRStatus(size = 8, description = "Received message data byte 7")
+        self.rcv_pulse = Signal()
 
         # Pin Connections
         self.can_rx = Signal()
         self.can_tx = Signal()
+
+        # Interrupts
+        self.submodules.ev = EventManager()
+        self.ev.frame = EventSourcePulse(description = "CAN frame received, sets pending bit")
+        self.ev.finalize()
+        self.comb += self.ev.frame.trigger.eq(self.rcv_pulse)
 
         # # #
 
@@ -50,6 +58,7 @@ class CanReceiver(Module, AutoCSR, ModuleDoc):
             o_o_data5 = self.rcv_data5.status,
             o_o_data6 = self.rcv_data6.status,
             o_o_data7 = self.rcv_data7.status,
+            o_o_pulse = self.rcv_pulse,
         )
 
         self.comb += self.can_rx.eq(self.pads.rx)
