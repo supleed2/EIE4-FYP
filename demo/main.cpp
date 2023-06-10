@@ -17,12 +17,14 @@
 /* Uart                                                                  */
 /*-----------------------------------------------------------------------*/
 
-static char *readstr(void) {
+char *readstr(bool print) {
 	char c[2];
 	static char s[64];
 	static unsigned int ptr = 0;
 
-	if (readchar_nonblock()) {
+	if (print) {
+		fputs(s, stdout);
+	} else if (readchar_nonblock()) {
 		c[0] = getchar();
 		c[1] = 0;
 		switch (c[0]) {
@@ -52,6 +54,10 @@ static char *readstr(void) {
 	}
 
 	return NULL;
+}
+
+static char *readstr(void) {
+	return readstr(false);
 }
 
 static char *get_token(char **str) {
@@ -439,17 +445,21 @@ static void console_service(void) {
 	prompt();
 }
 
+void isr(void);
+
 int main(void) {
 #ifdef CONFIG_CPU_HAS_INTERRUPT
 	irq_setmask(0);
 	irq_setie(1);
 #endif
 	uart_init();
+	can_init();
 
 	help();
 	prompt();
 
 	while (1) {
+		isr();
 		console_service();
 	}
 }
