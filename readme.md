@@ -11,6 +11,9 @@
 ### Useful links
 
 - [FreeRTOS Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html)
+  - [Run FreeRTOS and multitasking on VexRiscv](https://hackmd.io/@oscarshiang/freertos_on_riscv)
+  - [Run FreeRTOS on VexRiscv and Measure/Tweak context switch overhead](https://hackmd.io/@chiangkd/FreeRTOS-on-VexRiscv)
+  - [kole-huang/picorvv32_soc - GitHub](https://github.com/kole-huang/picorv32_soc), possible base for FreeRTOS port on PicoRV32
 - CAN Bus Implementation
   - [CAN bus: Base Frame Format - Wikipedia](https://en.wikipedia.org/wiki/CAN_bus#Base_frame_format)
   - [Texas Instruments: Introduction to CAN](https://www.ti.com/lit/an/sloa101b/sloa101b.pdf)
