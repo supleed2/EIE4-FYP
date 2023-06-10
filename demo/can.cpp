@@ -39,8 +39,10 @@ can_frame can_read(void) {
 
 void can_isr(void) {
 	static uint32_t count = 0;
-	can_ev_pending_frame_write(1);				// Should use `can_ev_pending_read()` and check which interrupt, but there is only 1
-	leds_out_write(leds_out_read() ^ 0xFF0000); // Toggle Red LED
+	can_ev_pending_frame_write(1);				  // Should use `can_ev_pending_read()` and check which interrupt, but there is only 1
+	uint32_t o_leds = leds_out_read() >> 8;		  // Read LED state
+	uint32_t n_leds = o_leds ? o_leds : 0xFF0000; // Next LED state
+	leds_out_write(n_leds);						  // Toggle Red LED
 	count++;
 	can_frame frame = can_read();
 	printf("\033[F\033[F\33[2K\nCAN frame % 5d received, ID: 0x%03X, data: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
