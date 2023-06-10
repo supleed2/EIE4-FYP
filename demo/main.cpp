@@ -23,6 +23,7 @@ char *readstr(bool print) {
 	static unsigned int ptr = 0;
 
 	if (print) {
+		s[ptr] = 0x00;
 		fputs(s, stdout);
 	} else if (readchar_nonblock()) {
 		c[0] = getchar();

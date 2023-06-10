@@ -38,11 +38,13 @@ can_frame can_read(void) {
 }
 
 void can_isr(void) {
+	static uint32_t count = 0;
 	can_ev_pending_frame_write(1);				// Should use `can_ev_pending_read()` and check which interrupt, but there is only 1
 	leds_out_write(leds_out_read() ^ 0xFF0000); // Toggle Red LED
+	count++;
 	can_frame frame = can_read();
-	printf("\033[F\033[F\33[2K\nCAN frame received, ID: 0x%03X, data: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
-		   frame.id, frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5],
+	printf("\033[F\033[F\33[2K\nCAN frame % 5d received, ID: 0x%03X, data: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
+		   count, frame.id, frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5],
 		   frame.data[6], frame.data[7]); // Print CAN frame to UART
 	can_ev_enable_frame_write(1);		  // Re-enable event handler, same as in `can_init()`
 	printf("\e[92;1mStackSynth\e[0m> ");  // Print prompt to UART
