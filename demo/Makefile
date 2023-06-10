@@ -3,7 +3,7 @@ BUILD_DIR?=../build/gsd_orangecrab/
 include $(BUILD_DIR)/software/include/generated/variables.mak
 include $(SOC_DIRECTORY)/software/common.mak
 
-OBJECTS = audio.o can.o crt0.o donut.o led.o main.o
+OBJECTS = audio.o can.o crt0.o donut.o isr.o led.o main.o
 CFLAGS += -DWITH_CXX
 
 
