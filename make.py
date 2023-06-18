@@ -194,7 +194,7 @@ class BaseSoC(SoCCore):
             #     pads         = platform.request_all("user_led"),
             #     sys_clk_freq = sys_clk_freq
             # )
-            from testRGB import TestRgb
+            from modules.testRGB import TestRgb
             self.leds = TestRgb(
                 platform = platform,
                 pads     = platform.request_all("user_led")
@@ -228,7 +228,7 @@ class BaseSoC(SoCCore):
         ])
 
         # CAN Receiver Block -----------------------------------------------------------------------
-        from testCAN import CanReceiver
+        from modules.canReceiver import CanReceiver
         self.can = CanReceiver(
             platform = platform,
             pads     = platform.request("can")
@@ -236,25 +236,20 @@ class BaseSoC(SoCCore):
         self.irq.add("can", use_loc_if_exists=True)
 
         # DAC Control / Audio Blocks ---------------------------------------------------------------
-        from testWave import TestWave
-        self.audio = TestWave(
+        from modules.genWave import GenerateWave
+        self.audio = GenerateWave(
             platform = platform,
             pads     = platform.request("dac_pcm")
         )
-        # from testSaw import TestSaw
-        # self.audio = TestSaw(
-        #     platform = platform,
-        #     pads     = platform.request("dac_pcm")
-        # )
-        # from dacVolume import DacVolume
-        # self.dac_vol = DacVolume(
+        # from modules.dacAttenuation import DacAttenuation
+        # self.dac_atten = DacAttenuation(
         #     platform = platform,
         #     pads     = platform.request("dac_ctrl")
         # )
 
         # Propagation Delay Test -------------------------------------------------------------------
-        # from testProp import TestProp
-        # self.proptest = TestProp(platform = platform)
+        # from modules.testPropagation import TestPropagation
+        # self.proptest = TestPropagation(platform = platform)
 
         # LiteScope Analyzer -----------------------------------------------------------------------
         self.add_uartbone(name="debug_uart", baudrate=921600)
@@ -264,11 +259,11 @@ class BaseSoC(SoCCore):
             # self.proptest.o_sin,
             self.can.can_rx,
             self.can.can_tx,
-            # self.dac_vol.volume.re,
-            # self.dac_vol.volume.storage,
-            # self.dac_vol.m_sel_n,
-            # self.dac_vol.m_clock,
-            # self.dac_vol.m_data,
+            # self.dac_atten.atten.re,
+            # self.dac_atten.atten.storage,
+            # self.dac_atten.m_sel_n,
+            # self.dac_atten.m_clock,
+            # self.dac_atten.m_data,
             self.audio.osc.re,
             # self.audio.osc.storage,
             self.audio.tf.re,

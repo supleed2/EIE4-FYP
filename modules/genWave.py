@@ -4,13 +4,12 @@ from litex.soc.interconnect.csr import *
 from migen.genlib.fifo import AsyncFIFO as MigenAsyncFIFO
 from litex.soc.integration.doc import ModuleDoc
 
-# Test RGB Module ----------------------------------------------------------------------------------
-
-class TestWave(Module, AutoCSR, ModuleDoc):
+class GenerateWave(Module, AutoCSR, ModuleDoc):
     """
-    Multi Wave Test Module
+    Multi Wave Generation Module
 
     Set the target frequency and waveform outpput for each of 128 oscillators.
+    Outputs samples normalised in range 0.5-1x max amplitude.
     """
     def __init__(self, platform, pads):
         platform.add_source("rtl/cordic.sv")

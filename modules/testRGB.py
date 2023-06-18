@@ -24,12 +24,12 @@ class TestRgb(Module, AutoCSR, ModuleDoc):
 
         leds = Signal(3)
         self.comb += pads.eq(~leds)
-        self.specials += Instance("flipPwm",
+        self.specials += Instance("ledPwm",
             i_clk = ClockSignal(),
             i_rgb = self._out.storage,
             o_ledr = leds[0],
             o_ledg = leds[1],
             o_ledb = leds[2]
         )
-        platform.add_source("rtl/flipPwm.sv")
+        platform.add_source("rtl/ledPwm.sv")
 

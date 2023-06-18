@@ -1,10 +1,10 @@
 `default_nettype none
 
-module dacVolume
+module dacAttenuation
 ( input  var       i_clk48   // Runs at 48MHz
 , input  var       i_rst48_n // Active low reset for sys_clk
 , input  var       i_valid   // Only update DAC volume when CSRStorage is written to
-, input  var [7:0] i_volume  // 8-bit volume control (0x00 = min, 0xFF = max)
+, input  var [7:0] i_atten   // 8-bit attenuation control (0x00 = min, 0xFF = max)
 , output var       o_sel_n   // DAC Control bus select (active low)
 , output var       o_clock   // DAC Control bus clock
 , output var       o_data    // DAC Control bus data (serial)
@@ -19,7 +19,7 @@ always_ff @(posedge i_clk48) // Capture when CSTStorage is written to
 logic [7:0] volume;
 always_ff @(posedge i_clk48) // Update volume setting when CSRStorage is written to
   if (!i_rst48_n)   volume <= 8'h00;
-  else if (i_valid) volume <= i_volume;
+  else if (i_valid) volume <= i_atten;
 
 logic [2:0] div_6m;
 always_ff @(posedge i_clk48) // Count 6MHz cycle

@@ -5,7 +5,7 @@ from litex.soc.integration.doc import ModuleDoc
 
 # Test RGB Module ----------------------------------------------------------------------------------
 
-class TestProp(Module, AutoCSR, ModuleDoc):
+class TestPropagation(Module, AutoCSR, ModuleDoc):
     """
     Propagation Test Module
 

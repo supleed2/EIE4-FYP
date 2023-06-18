@@ -1,6 +1,6 @@
 `default_nettype none
 
-module flipPwm
+module ledPwm
 ( input  var        clk
 , input  var [23:0] rgb
 , output var        ledr
