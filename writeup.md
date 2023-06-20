@@ -91,6 +91,7 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 - FIFO: First-In First-Out
 - FPGA: Field-Programmable Gate Array
 - GPIO: General Purpose Input/Output
+- GUI: Graphical User Interface
 - HDL: Hardware Description Language
 - IRQ: Interrupt ReQuest
 - ISR: Interrupt Service Routine
@@ -284,9 +285,7 @@ The second tool used is [`slang`](https://github.com/MikePopoloski/slang), a Sys
 
 # Implementation
 
-This section details the implementation of the project, with sub-sections covering different areas of the final implementation. These sub-sections do not represent the order of implementation, but rather logical grouping to keep relevant decision and design aspects together. Areas for further work are also briefly discussed, with further detail in the [Further Work](#conclusions-and-further-work) section.
-
-> Directly pasting in code only helpful to illustrate very specific points, ie annotated / edited snippets. Useful to explain algorithmic flow / highlight an optimisation. Use screenshots to demonstrate things like failure cases (glitches on `saw2sin` output), not the expected outcome. Focus on design concepts, detail interesting parts. Large snippets (documentation / API) can go in the appendix. Software is on GitHub.
+This section details the implementation of the project, with sub-sections covering different areas of the final implementation. These sub-sections do not represent the order of implementation, but rather logical grouping to keep relevant decision and design aspects together. Areas for further work are also briefly discussed, with further detail in the [Further Work](#conclusions-and-further-work) section. The implementation is available in the GitHub repository: [supleed2/EIE4-FYP](https://github.com/supleed2/EIE4-FYP).
 
 ## Setting up the LiteX Framework
 
@@ -631,7 +630,7 @@ Along with the LiteX built-in `Timer` module, interrupts can be used to create h
 
 ## FPGA Utilisation
 
-As this project uses an FPGA, a major limitation on the performance of the design is the available resources. In the output of the `nextpnr` placement stage, there is a device utilisation report which shows the number of each type of logic element and primitive block used. An excerpt of the report during a compilation of the final design is included in Listing x.y.
+As this project uses an FPGA, a major limitation on the performance of the design is the available resources. In the output of the nextpnr placement stage, there is a device utilisation report which shows the number of each type of logic element and primitive block used. An excerpt of the report during a compilation of the final design is included in Listing x.y.
 
 [Listing: FPGA utilisation report]
 
@@ -665,7 +664,6 @@ Info:                   DCSC:     0/    2     0%
 Info:             TRELLIS_FF:  7790/24288    32%
 Info:           TRELLIS_COMB: 24126/24288    99%
 Info:           TRELLIS_RAMW:    95/ 3036     3%
-Info: Device utilisation:
 ```
 
 - TODO: Work out TRELLIS_COMB breakdown for CPU, Bus logic, Wave generator, other blocks
@@ -683,7 +681,21 @@ Lines of importance from Listing x.y include:
 - TRELLIS_COMB: combinational logic elements, used for all logic in the design between clocked elements
   - 24126/24288 used: determines the amount of logic that can be implemented in the design, this is the limiting factor to adding more features to the design
 
-For further additions to the design, an increase in remaining logic will be required. The OrangeCrab model could be swapped from the LFE5U-25F model to the LFE5U-85F, which has 84k LUTs, 3744Kb of embedded RAM and 669Kb of distributed RAM, however this would lead to increased per-board cost of producing the StackSynth FPGA Extension boards.
+The breakdown of `TRELLIS_COMB` usage is helpful in identifying blocks that could be optimised, however the version of nextpnr provided as part of Project Trellis does not include the GUI and the command-line program does not expose per module utilization reports. As a comparison, the `LUT4` utilisation has been used as an approximation of the logic utilisation of each module, as provided in the synthesis report by Yosys, shown in Table x.y. The table shows that the `cordic` module is small relative to the `PicoRV32` CPU, however the `genWave` module uses a large amount of logic and is likely a target for future optimisation.
+
+[Table: TRELLIS_COMB breakdown]
+
+| Module         | LUT4 Usage |
+| -------------- | ---------- |
+| gsd_orangecrab | 15543      |
+| picorv32       | 3027       |
+| can            | 139        |
+| dacDriver      | 62         |
+| genWave        | 8874       |
+| saw2sin        | 61         |
+| cordic         | 1066       |
+
+For further additions to the design, an increase in unused logic will be required. The OrangeCrab model could be swapped from the LFE5U-25F model to the LFE5U-85F, which has 84k LUTs, 3744Kb of embedded RAM and 669Kb of distributed RAM, however this would lead to increased per-board cost of producing the StackSynth FPGA Extension boards.
 
 Alternatively, the number of logic elements used in the design could be reduced. One method would be to reduce the number of available oscillators, reducing the logic and storage for calculating phase-steps and combining samples, however the logic used to convert phase to samples is shared between all of the oscillators so the decrease in logic element usage is likely to be small. Another method would be to replace the `VexRiscV` and `PicoRV32` CPUs used in this design with a smaller CPU at the expense of performance. The viability of these options is not known, and is left as future work.
 
