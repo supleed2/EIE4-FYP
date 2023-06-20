@@ -1,9 +1,5 @@
 Write-up of `FPGA Accelerator for StackSynth`
 
-> Write up everything that you are in a position to, where feedback is likely to be helpful. Lay out the headings and the general content of each section.
-
-**What changes need to be made?**
-
 # Title Page
 
 Standard Template is on Intranet
@@ -12,22 +8,18 @@ Standard Template is on Intranet
 - Student: Aadi Desai
 - CID: 01737164
 - Course: EIE4
-- Project Supervisor: Dr Ed Stott
-- Second Marker: Dr T.J.W Clarke
+- Project Supervisor: Dr Edward Stott
+- Second Marker: Dr Thomas J.W Clarke
 
 # Acknowledgements
 
-I would like to thank Dr Ed Stott for his time and patience in the many meetings it took to discuss this project, as well as his guidance in architectural decisions that impacted the entire project. Without this insight, this project may not have been completed to a standard useful for future students.
-
-TODO: Do this at the end
+I would like to thank Dr Ed Stott for his time and patience in the many meetings it took to discuss this project, as well as his guidance in architectural decisions that impacted the entire project. Without this insight, much more time may have been spend investigating alternatives and this project may not have reached a Proof-of-Concept stage that is useful for future students of the 3rd Year Embedded Systems module..
 
 # Abstract
 
-TODO: Summarise better
-
 The StackSynth module is an educational synthesiser platform based on the STM32L432, an ARM Cortex-M4 based CPU, which is well suited for the low-level realtime programming learning objective of the Embedded Systems module. However, it is not optimised for the Digital Signal Processing operations needed for complex audio waveform generation.
 
-This project develops an FPGA-based extension module for StackSynth, with the purpose of increasing the audio ability and performance of the synthesiser, while offering future Embedded Systems students an opportunity to develop code for a RISC-V System-on-Chip. The main contribution of this project is the SystemVerilog modules and LiteX wrappers for receiving low-speed CAN frames, producing waveforms for a given frequency, converting from phase to a sine wave and driving the PCM1780 DAC audio / control ports. In addition, there are demo C++ programs and helper functions for interfacing with the custom logic and finally, integration of these custom logic blocks into a LiteX project that facilitates the use of the existing IP for the CPU, memory controller, USB controller and interfaces.
+This project develops an FPGA-based extension module for StackSynth, with the purpose of increasing the audio ability and performance of the synthesiser, while offering future Embedded Systems students an opportunity to develop code for a RISC-V System-on-Chip. The main contribution of this project is the SystemVerilog modules and LiteX wrappers for receiving low-speed CAN frames, producing waveforms for a given frequency, converting from phase to a sine wave and driving the PCM1780 DAC audio / control ports. In addition, there are demo C++ programs and helper functions for interfacing with the custom logic and finally, integration of these custom logic blocks into a LiteX project that facilitates the use of the existing IP for the CPU, memory controller, USB controller and serial interfaces.
 
 The API for controlling the custom SystemVerilog logic has been designed to be simple to implement within student-written FreeRTOS tasks, similar to the existing Embedded Systems Module coursework C++ architecture.
 
@@ -54,7 +46,10 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 - [Implementation](#implementation)
   - [Setting up the LiteX Framework](#setting-up-the-litex-framework)
   - [Generating Audio Samples](#generating-audio-samples)
+    - [Phase-Step Calculation](#phase-step-calculation)
+    - [Phase to Amplitude Conversion](#phase-to-amplitude-conversion)
     - [Sine Wave Approximation](#sine-wave-approximation)
+    - [Combining Oscillators](#combining-oscillators)
   - [Transferring samples across clock domains](#transferring-samples-across-clock-domains)
   - [Driving the DAC (PCM1780)](#driving-the-dac-pcm1780)
   - [Using LiteScope Analyzer](#using-litescope-analyzer)
@@ -99,6 +94,7 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 - HDL: Hardware Description Language
 - IRQ: Interrupt ReQuest
 - ISR: Interrupt Service Routine
+- LSB: Least Significant Bit
 - LUT: Look-Up Table
 - MOSFET: Metal-Oxide Semiconductor Field-Effect Transistor
 - MSB: Most Significant Bit
@@ -117,6 +113,10 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 - TODO: Summarise the rest of the report, focus on rationale, aims, terms of reference, brief mention of what is to come/in each chapter, ie does it work or not
 
 > High level problem statement / motivation. Outline the main problems your project addresses, and introduce the structure of the remaining report, what is covered in which chapters and how they relate to each other, but not in detail.
+>
+> The first page is prime real estate and it's most important purpose is to answer the question "what is this thing" to a reasonably high technical level - make sure it's clear what it is that you have done & only really address that rather than the stuff you've added on to, which should be assumed knowledge in the introduction.
+>
+> If you have a good example for a leading graphic of something relevant to the resulting problem (I'm doing compiling graphs, so I've got a graph alongside the code of that graph) then that's a good thing to have as again it really helps to answer "what is this thing"
 
 # Background
 
@@ -176,7 +176,7 @@ LiteX is a framework for creating FPGA cores and complex SoCs, using many provid
 
 LiteX has support for a large range of boards, and the creator of the OrangeCrab added support in [litex-hub/litex-boards, PR #59](https://github.com/litex-hub/litex-boards/pull/59), including the necessary pin definitions and [Project Trellis](https://github.com/YosysHQ/prjtrellis) toolchain steps for creating the bitstream for the OrangeCrab r0.2(.1) used in this project with Yosys and nextpnr targetting the Lattice Semiconductor ECP5.
 
-The LiteX project initially built upon [Migen](https://github.com/m-labs/migen), so many of the Migen cores are still available and the overall method of defining modules, synchronous and combinatorial logic remains in line with Migen. Migen - and by extension LiteX - is a DSL (Domain Specific Language) using Python and the dictionary nature of all variables to provide terse syntax for defining logic. This syntax is shown in Listing x.y [below].
+The LiteX project initially built upon [Migen](https://github.com/m-labs/migen) ([homepage](https://m-labs.hk/gateware/migen/)), so many of the Migen cores are still available and the overall method of defining modules, synchronous and combinatorial logic remains in line with Migen. Migen - and by extension LiteX - is a DSL (Domain Specific Language) using Python and the dictionary nature of all variables to provide terse syntax for defining logic. This syntax is shown in Listing x.y [below].
 
 [Listing: Diagram of defining `comb` and `sync` logic in LiteX]
 
@@ -375,12 +375,11 @@ self.leds = TestRgb(
 
 ## Generating Audio Samples
 
-This section covers the `Wave Sample Generator Block` mentioned in the [Analysis and Design](#analysis-and-design) section, which corresponds the LiteX [`GenerateWave`](modules/genWave.py) module in the project files. Audio samples are created in the system and main 48MHz clock domain. This is done to allow the samples to be generated at a higher frequency than the audio sample rate and also allows the values of the CSRs to be directly read by the SystemVerilog sub-modules without the need for a clock domain crossing or synchronisation to prevent glitches. The LiteX module contains three `CSRStorage` slots for controlling the oscillators: an oscillator index to select which oscillator to modify, the target frequency of the selected oscillator, and the waveform of the selected oscillator from sawtooth, square, triangle or sine.
+This section covers the `Wave Sample Generator Block` mentioned in the [Analysis and Design](#analysis-and-design) section, which corresponds the LiteX [`GenerateWave`](modules/genWave.py) module in the project files. Audio samples are created in the system and main 48MHz clock domain. This is done to allow the samples to be generated at a higher frequency than the audio sample rate and also allows the values of the CSRs to be directly read by the SystemVerilog sub-modules without the need for a clock domain crossing or synchronisation to prevent glitches. The LiteX module contains three `CSRStorage` slots for controlling the oscillators: an oscillator index to select which oscillator to modify, the target frequency of the selected oscillator, and the waveform of the selected oscillator from sawtooth, square, triangle or sine. When either a the target frequency or waveform CSR is written to by the CPU, a pulse is created indicating the respective setting was written to. Depending on which pulse is detected, the `genWave` SystemVerilog module updates the internal settings for the oscillator indicated by the index CSR for either the target frequency or waveform.
 
-When either a the target frequency or waveform CSR is written to by the CPU, a pulse is created indicating the respective setting was written to. Depending on which pulse is detected, the `genWave` SystemVerilog module updates the internal settings for the oscillator indicated by the index CSR for either the target frequency or waveform. These target frequencies are then converted to phase step values for a 24 bit phase accumulator that increments at the sampling frequency of 48kHz.
+### Phase-Step Calculation
 
-A 48kHz clock is created using a clock divider driven by the system 48MHz clock, and is used as it is a common sampling frequency, higher than the standard "CD-quality" sampling rate and allows for 1000 cycles per sample for calculation of each sample. The equation used to calculate the phase step value is shown in Listing x.y, where $2^{24}$ is the number of values possible in the 24 bit phase step calculation, and 48000 is the sampling frequency.
-
+These target frequencies are then converted to phase step values for a 24 bit phase accumulator that increments at the sampling frequency of 48kHz. A 48kHz clock is created using a clock divider driven by the system 48MHz clock, and is used as it is a common sampling frequency, higher than the standard "CD-quality" sampling rate and allows for 1000 cycles per sample for calculation of each sample. The phase step values for each oscillator are updated from the target frequency values sequentially, and as these updates are done at one oscillator per cycle, the phase step values are updated within the time for one sample, resulting in a maxiumum increase in latency of one sample for changes to target frequency. This change allows for one multiplier block to be shared rather than using one per oscillator, which would limit the number of oscillators as the Lattice LFE5U-25F has 28 multipliers. The equation used to calculate the phase step value is shown in Listing x.y, where $2^{24}$ is the number of values possible in the 24 bit phase step calculation, and 48000 is the sampling frequency.
 
 [Listing: Equation for calculating phase step value]
 
@@ -400,7 +399,9 @@ logic [15:0] phase_step [0:63]; // Shift step right correctly (2^9)
 always_ff @(posedge i_clk48) phase_step[ps_clk] <= {1'b0, int_phase_step[23:9]};
 ```
 
-Once per 48kHz cycle, each phase accumulator is incremented by the respective phase step value for that oscillator. Along with the phase to amplitude converter, this forms a numerically controlled oscillator. Numerically controlled oscillators are commonly used in digital signal processing, PLLs and many radio systems. Key benefits include dynamic frequency control and phase adjustment, frequency accuracy and ease of implementation. The phase accumulator can be simplified by aligning the overflow point with the point where the phase accumulator would be reset to 0, or equivalently, if the phase accumulator is stored using `N` bits, a value of `2^N` represents an angle of 360°.
+### Phase to Amplitude Conversion
+
+Once per 48kHz cycle, each phase accumulator is incremented by the respective phase step value for that oscillator. Along with the phase to amplitude converter, this forms a numerically controlled oscillator. Numerically controlled oscillators are commonly used in digital signal processing, PLLs and many radio systems. [ZipCPU Blog reference](https://zipcpu.com/dsp/2017/12/09/nco.html) [Microchip reference](https://www.microchip.com/en-us/products/microcontrollers-and-microprocessors/8-bit-mcus/core-independent-and-analog-peripherals/waveform-control/numerically-controlled-oscillator) [Lattice reference](https://www.latticesemi.com/products/designsoftwareandip/intellectualproperty/ipcore/ipcores02/numericallycontrolledoscillator) Key benefits include dynamic frequency control and phase adjustment, frequency accuracy and ease of implementation. The phase accumulator can be simplified by aligning the overflow point with the point where the phase accumulator would be reset to 0, or equivalently, if the phase accumulator is stored using `N` bits, a value of `2^N` represents an angle of 360°.
 
 For the sawtooth, square and triangle waveforms, direct bit-level conversions are used from the phase input. Conversion from phase to a sine wave is done in the `saw2sin` SystemVerilog module, which is a wrapper around a quarter wave CORDIC module. The `cordic` SystemVerilog module has a 16 bit phase input which represents phase inputs 0° - 90°, and outputs a 16 bit amplitude which represents the sine output from 0 to 1. The conversion from 0° - 360° to 0° - 90° for input to the CORDIC module is done by the `saw2sin` module, which also converts the quarter wave output into a full wave. Table x.y shows the subtraction of the phase input and inversion of the output required to convert the quarter wave CORDIC module into a full sine wave.
 
@@ -408,33 +409,62 @@ For the sawtooth, square and triangle waveforms, direct bit-level conversions ar
 
 ### Sine Wave Approximation
 
-[Link to tabs](chrome-extension://edacconmaakjimmfgnblocblbcdcpbko/main.html#3krtP1LSgKVSILuVyb5PvXiK4Xfyhpo8)
+For converting a phase input to a sine amplitude, a CORDIC block is used. An initial attempt using a polynomial approximation was tested using a cocotb testbench, similarly to the final CORDIC module as explained in the testing section, [Phase to sine amplitude conversion](#phase-to-sine-amplitude-conversion). This resulted in an accurate amplitude output, and a graph using the [Desmos graphing calculator](https://www.desmos.com/calculator) is shown in Figure x.y, where the polynomial approximation is shown in red and overlaps the reference sine wave in blue. The green line shows the final expected output from the `saw2sin` module. Synthesis of this polynomial approximation block resulted in 191% utilisation of the `TRELLIS_COMB` blocks, causing placement to fail.
 
-- Conversion to sine wave, using CORDIC block to convert phase to sine value
-  - Initial attempt using polynomial approximation, resulted in very accurate output in cocotb testbench
-    - Include Desmos image of approximation scale in appendix?
-    - Resulted in 191% max resource utilisation, so could not be synthesized
-  - Quarter wave block, with a wrapper block to convert to full wave
-    - Initially broken due to signed vs unsigned output
-    - [Before](unsignedsine.png) vs [After](signedsine.png) fixing MSB
-  - Some bit adjustments made to increase accuracy using a cocotb testbench and reference waveform
-    - Average error of 0.455326 from float reference waveform in python (out of 0-65535 range)
-    - Testbench available in public repository on [GitHub](https://github.com/supleed2/cordic)
-    - Detailed in [Testing](#testing-and-results) section
-  - Initially glitches occurred in `saw2sin` block, changing the output to be registered using `always_ff` fixed this by reducing critical paths and timing differences of individual bits
-    - [Before](glitchingwave.png), clearer in [Masked Version](glitchmask.png)
-  - Testing propagation delay of the CORDIC block, so that many samples can be calculated with the same logic reducing scaling of resource utilisation, even with these optimisations, the design is very close to the limit, shown in [FPGA Utilisation](#fpga-utilisation)
-    - [LiteX wrapper](modules/testPropagation.py) and resulting [waveform](notes/testPropTiming.vcd) created using LiteScope Analyser
-    - Detailed in [Testing](#testing-and-results) section
+[Figure: Polynomial approximation of sine wave]
 
-- Aggregated oscillator block
-  - Contains 64 oscillators (tf & waveform settings, 16b phase acc for each)
-  - Merges resulting samples into 1 sample, and shifts the result to keep the amplitude in the range 0.5-1 * max
-    - Shift value calculated by counting non-zero `phase_step` values, and shifting by ceiling of log2 of this value - 1, limiting the wave to the range 0-65535
-  - Optimised to reduce resource utilisation
-    - Using a single multiplier for calculating phase steps, iterating through all available target frequencies every 64 clock cycles
-    - Single block for phase -> waveform conversion, used for 4 cycles for each of the 64 oscillators, generates all samples in 256 clock cycles (out of 1000 between each 48kHz sample)
-    - Signed addition of samples implemented by sign-extending individual samples as they are summed
+![Polynomial approximation of sine wave](notes/sine_poly_approx.png)
+
+Instead, a CORDIC SystemVerilog module was built while following a ZipCPU blog post on [Using a CORDIC to calculate sines and cosines in an FPGA](https://zipcpu.com/dsp/2017/08/30/cordic.html) for explanations on the ideas behind the CORDIC algorithm. The CORDIC module was built to use 16 bit inputs and outputs, and the phase input represents a range of 0° - 90°. The `cordic` SystemVerilog module was then instantiated within the `saw2sin` module where it is used to recreate a full cycle of the sin wave.
+
+Initial testing of the CORDIC module revealed that the algoritm was not accurate at extreme input values. For very small phase input values, the resulting values were too large, and for very large phase input values, the resulting values sometimes decreased as the phase increased. The issue at large phase input values was worked around by outputting a maximum output value if the input phase was above a certain threshold, 65508 in this case, as this matched the reference Python function. The issue at small phase input values was worked around by implementing a small angle approximation, where the output value is equal to 1.5x the input value for inputs below 32. The value of 1.5 was used for simplicity in implementation due to needing one right shift and one addition. The resulting CORDIC module performed much better and is the version tested in the testing section, [Phase to sine amplitude conversion](#phase-to-sine-amplitude-conversion), including adjustments to further improve accuracy and reduce error.
+
+This completed `saw2sin` block now output a full sine wave, however the output was in the range of 0 to 65535 but the PCM1780 DAC uses signed values in the range -32768 to 32767. The effect of this is seen in Figure x.y where the resulting wave is discontinuous. To fix this, the MSB of the `saw2sin` amplitude output was inverted, as this is equivalent to adding half the maximum value, and the resulting audio output is shown in Figure x.z.
+
+[Figure: Unsigned sine wave output]
+
+![Unsigned sine wave output](notes/unsignedsine.png)
+
+[Figure: Signed sine wave output]
+
+![Signed sine wave output](notes/signedsine.png)
+
+During testing, glitches in the output wave were discovered. These glitches were likely caused by the long critical path due to the combinatorial `cordic` module, so the output was changed to a registered output and the output sampled after multiple cycles. This is discussed further in the testing section, [CORDIC Propagation Delay](#cordic-propagation-delay)
+
+In addition to using the value of the CORDIC module after multiple cycles, the design was to be expanded to multiple simultaneous oscillators, however instantiating a CORDIC module for each oscillator would result in wasted logic as the modules would remain unused for most cycles out of the 1000 cycles available per 48kHz sample when running at 48MHz.
+
+To make better use of available resources, a single CORDIC module was instantiated and each phase to amplitude conversion done sequentially, in a basic form of time division multiplexing. The low 2 bits of a 48MHz counter were used to load the next phase value at step 0 and capture the resulting amplitude at step 3.
+
+### Combining Oscillators
+
+The final stage of generating audio samples involves combining the samples from each individual oscillator into a single sample. As a single oscillator already has the maximum amplitude, the individual samples are sign extended to 24 bits before being summed into a single sample. To maintain a more consistent volume, the final sample is also shifted to the right to keep the maximum amplitude within the range of a 16 bit signed value.
+
+The amount to shift by is calculated as the logarithm base 2 of the number of currently active oscillators minus one, so one oscillator is unaffected, two are halved and three or four are divided by four. The resulting sample will have a maximum amplitude that is between 0.5 and 1 times the maximum amplitude of a single oscillator, depending on the number of active oscillators. The SystemVerilog code for combining the individual samples is shown in Listing x.y.
+
+[Listing: Combining individual oscillator samples]
+
+```systemverilog
+// Add up sign extended samples
+always_comb samples_long[0] = {{8{samples[0][15]}}, samples[0]};
+for (genvar i = 1; i < 64; i++) begin: l_gen_sample_long
+  always_comb samples_long[i] = samples_long[i-1] + {{8{samples[i][15]}}, samples[i]};
+end
+
+// Count number of active oscillators
+always_comb waves_count[0] = (phase[0] != 16'd0);
+for (genvar i = 1; i < 64; i++) begin: l_gen_waves_count
+  always_comb waves_count[i] = waves_count[i-1] + (phase[i] != 16'd0);
+end
+
+always_comb wv_cnt_1 = waves_count[63] - 1; // Subtract 1 from wave count
+
+always_comb shift = /* logic to calculate shift amount */;
+
+// Shift output sample right to get normalised output
+always_ff @(posedge i_clk48) samples_sum <= samples_long[63] >> shift;
+
+always_comb o_sample = samples_sum[15:0];    // Truncate output to 16 bits
+```
 
 ## Transferring samples across clock domains
 
@@ -564,7 +594,7 @@ In an embedded system, interrupts are a vital part of a scheduling system, allow
 
 For this section, the `PicoRV32` CPU was used as external interrupts do not cause the CPU to jump to an interrupt handler and interrupts must be manually checked and handled, allowing for easier implementation of a Proof-of-Concept interrupt handler. The `PicoRV32` CPU is not used in the remainder of this project as the performance is lower than the `VexRiscV` CPU at 0.516 DMIPS/MHz[gh](https://github.com/YosysHQ/picorv32) compared to 1.44 DMIPS/MHz[gh](https://github.com/SpinalHDL/VexRiscv) as reported in the respective documentation.
 
-Interrupts in a LiteX module are created by adding an `EventManager` which automates connection to the main interrupt bus and accepts three types of events as inputs. An `EventSourcePulse` triggers on a pulse and stays asserted after the trigger is deasserted. The event is only cleared when acknowledged by software.
+Interrupts in a LiteX module are created by adding an `EventManager` which automates connection to the main interrupt bus and accepts three types of events as inputs. An `EventSourcePulse` triggers on a pulse and stays asserted after the trigger is de-asserted. The event is only cleared when acknowledged by software.
 
 An `EventSourceProcess` triggers on either a rising or falling edge of a signal and is used to monitor the status of a signal and generate an interrupt on a change. The event is cleared when acknowledged by software. Finally, an `EventSourceLevel` contains the current status of an event and must be set and cleared by external logic, such as a design that keeps asserting an interrupt until the interrupt cause is cleared.
 
@@ -597,7 +627,7 @@ void can_isr(void) {
 }
 ```
 
-Along with the LiteX built-in `Timer` module, interrupts can be used to create hardware timers. This is especially beneficial for supporting real-time operating systems such as FreeRTOS, where timers can be used to create initiation triggers for tasks and interrupts are used for unpredicatable events such as receiving CAN frames as in the Embedded Systems coursework. This is explained in further detail in the [further work](#conclusions-and-further-work) section.
+Along with the LiteX built-in `Timer` module, interrupts can be used to create hardware timers. This is especially beneficial for supporting real-time operating systems such as FreeRTOS, where timers can be used to create initiation triggers for tasks and interrupts are used for unpredictable events such as receiving CAN frames as in the Embedded Systems coursework. This is explained in further detail in the [further work](#conclusions-and-further-work) section.
 
 ## FPGA Utilisation
 
@@ -645,7 +675,7 @@ Lines of importance from Listing x.y include:
 - DP16KD: dual-port RAM blocks, used in the CPU and the sample storage of the LiteScope Analyzer
   - 49/56 used: the memory of the Analyzer is limited due to this, but the design is unlikely to require more than are currently used
 - MULT18X18D: 18x18 multipliers, used in the CPU and for phase-step calculation in the `cordic` block
-  - 2/28 used: a previous iteration of the `cordic` block where all phase-steps were calculated combinatorially in parallel resuled in 65/28 multipliers
+  - 2/28 used: a previous iteration of the `cordic` block where all phase-steps were calculated combinatorially in parallel resulted in 65/28 multipliers
 - EHXPLLL: Phase-Locked Loop, used for generating the 48MHz and other clock signals required in the design
   - 2/2 used: the design already uses both available PLLs, one for the USB PHY and one for the remainder of the design, where the DAC clock output was added
 - TRELLIS_FF: DFF (D-type flip-flop) logic elements, used to store signals between clock cycles
@@ -659,13 +689,11 @@ Alternatively, the number of logic elements used in the design could be reduced.
 
 # Testing and Results
 
-> Describe testing plan, how the project deliverable will be verified. (Actual test results can go in the Appendix if repetitive / large) Accurate summary of results should be in the report. Include a precise description of what works, and how this has been shown / established. Examiners may try to compile your project, so this section should accurately reflect the state of the project. This chapter shows qualitatively and quantitatively how well the deliverable works, relates to understanding / analysis of the hardware behaviour. This section is about functional correctness.
-
 This section discusses the testing of individual blocks within the overall design, and the tools used to verify correct operation.
 
 ## Phase to sine amplitude conversion
 
-One area with a noticable impact on performance is the phase to sine amplitude conversion of samples within the `cordic` and `saw2sin` SystemVerilog modules, as incorrect amplitude values can result in audible glitches in the waveform output at the 3.5mm headphone port. The cordic module was first checked as a standalone module, and then integrated into the `saw2sin` module and exhaustively tested at each input value as the output amplitude only depends on the input phase and waveform selections, with no internal state between input values.
+One area with a noticeable impact on performance is the phase to sine amplitude conversion of samples within the `cordic` and `saw2sin` SystemVerilog modules, as incorrect amplitude values can result in audible glitches in the waveform output at the 3.5mm headphone port. The cordic module was first checked as a standalone module, and then integrated into the `saw2sin` module and exhaustively tested at each input value as the output amplitude only depends on the input phase and waveform selections, with no internal state between input values.
 
 This testing was automated using `cocotb`, a Python-based verification framework for SystemVerilog and VHDL designs, and the repository containing the modules and testbench is [available on GitHub](https://github.com/supleed2/cordic). The Python testbench defines the timing and values of the inputs and checks the output value against the reference, however simulation is handled by an external simulator. In this module, only two-state simulation is needed as unknown and high impedance values are not used so [Verilator](https://github.com/verilator/verilator/) is used as the simulator, as simulations are much faster than other simulators while maintaining cycle accuracy. If exact timing is required, using another simulator may be more appropriate as support for timing directives is limited in Verilator.
 
@@ -711,32 +739,162 @@ always_comb o_sin = sin[16:1]; // Remove extra bit used for offsets
 
 ## CORDIC propagation delay
 
-- Propagation delay of `cordic` block
-  - Using LiteScope Analyzer to view output of the block when captured at 48MHz
+In the implementation of the `genWave` SystemVerilog module, the `cordic` module is used to convert a phase value to a sine amplitude, however when viewing the output of the PCM1780 using a PicoScope, visible glitches were observed in the waveform output. A screenshot of the PicoScope software is shown in Figure x.y, where the glitch in the output can be seen, and Figure x.y2, where a mask is used to show glitches from multiple captures at once. The glitches primarily occur near when the wave changes sign, or when the MSB of the amplitude changes. The expected cause of this glitch was propagation delay differences between the bits of the amplitude output. To mitigate this, the combinatorial output of the `cordic` module was replaced with a synchronous output by changing the `always_comb` statement to an `always_ff @(posedge i_clk)`. This change removed the glitches from the waveform output, as shown in Figure x.z.
+
+[Figure: PicoScope screenshot of glitch in waveform output]
+
+![PicoScope screenshot of glitch in waveform output](notes/glitchingwave.png)
+
+[Figure: PicoScope screenshot of masked glitches in waveform output]
+
+![PicoScope screenshot of masked glitches in waveform output](notes/glitchmask.png)
+
+[Figure: PicoScope screenshot of waveform output without glitches]
+
+![PicoScope screenshot of waveform output without glitches](notes/cleanwavewave.png)
+
+As the `cordic` module was no longer combinatorial, the `genWave` module would need to sample or capture the output once it is stable. The propagation delay of the `cordic` module was measured by using a counter to iterate through all 65536 input values, incrementing every 8 cycles, and then connecting the `i_saw` and `o_sin` signals to the LiteScope Analyzer, checking the time taken for the output to stabilise. The cocotb testbench is available in the project files at [modules/testPropagation.py](modules/testPropagation.py), and resulting waveform VCD file at [notes/testPropTiming.vcd](notes/testPropTiming.vcd).
+
+A screenshot of the VCD file in GTKWave is included in Figure x.y. The propagation delay of the `cordic` module was measured to be 1-2 cycles at 48MHz, so the output is sampled after 3 cycles to ensure the output is stable. An excerpt of the `genWave` module showing the value capture after 3 cycles is shown in Listing x.z.
+
+[Figure: GTKWave screenshot of `cordic` propagation delay]
+
+![testPropTiming Screenshot](notes/testPropTiming.png)
+
+[Listing: SystemVerilog `genWave` module, excerpt of capturing `cordic` output]
+
+```systemverilog
+// Saw amplitude captured on cycle 0
+always_ff @(posedge i_clk48) if (clk_div[1:0] == 2'd0) saw <= phase[clk_div[7:2]];
+
+// Waveform selection
+always_comb // Select waveform sample based on wav_sel for current oscillator
+  case (wav_sel[clk_div[7:2]])
+    8'd0: sample = saw;
+    8'd1: sample = square;
+    8'd2: sample = triangle;
+    8'd3: sample = sine;
+    default: sample = saw;
+  endcase
+
+// Sample captured on cycle 3
+always_ff @(posedge i_clk48) if ((clk_div[1:0] == 2'd3) && osc_valid) samples[clk_div[7:2]] <= sample;
+
+// Remaining module code...
+```
 
 ## Receiving and acknowledging CAN frames
 
-- Receiving and acknowledging CAN frames, including stuff-bit detection
+Operation of the CAN receiver module was verified by connecting the StackSynth FPGA Extension board to the main StackSynth module and sending CAN frames. A PicoScope was connected to the CANL pin of the StackSynth inter-board connector using probe A (blue) and GPIO 11 of the OrangeCrab using probe B (red). The PicoScope serial decoder was set up to decode the CAN bus signal and display the received CAN frames, including whether the communication is valid or invalid.
 
-Figure x.y shows a screenshot of the PicoScope software, with probe A (red) connected to GPIO 11 of the OrangeCrab driven by the `stuff_bit` signal in this test, and probe B (blue) connected to the CANL pin of the StackSynth inter-board connector. The PicoScope serial decoder is used to decode the CAN bus signal and display the received CAN frames, including whether the communication is valid or invalid. In the figure, two CAN frames are received and acknowledged, with both having an ID of `0x123` and data bytes of `0x5206010000000000` and `0x5206030000000000`. In the Embedded Systems module, these correspond to note-down events for octave 6 note 1 or C and octave 6 note 3 or D respectively.
+Figure x.y shows a screenshot of the PicoScope software, where GPIO 11 of the OrangeCrab was driven by the `stuff_bit` signal of the CAN receiver module and this signal matches the stuff bits indicated by the PicoScope Serial Decoder. In the figure, two CAN frames are correctly acknowledged, with both having an ID of `0x123` and data bytes of `0x5206010000000000` and `0x5206030000000000`. In the Embedded Systems module, these correspond to note-down events for octave 6 note 1 or C and octave 6 note 3 or D respectively.
 
 [Figure: PicoScope screenshot of CAN bus](notes/CANdecoder.png)
 
+![PicoScope CAN decode screenshot](notes/CANdecoder.png)
+
 ## Software-interrupt detection of CAN frames
 
-- Reading CAN Frames and outputting debugging information to the serial console
-  - Using `can` interrupt service routine in a polling loop
+Interrupts from the CAN receiver module to the CPU were verified using the `PicoRV32` CPU as this CPU does not jump to an interrupt handler when an external interrupt is received. This is helpful for testing as the documentation of the LiteX project on registering an interrupt handler is incomplete, stopping after the Event Manager is connected to the CPU interrupt port. To demonstrate that the interrupts reach the CPU, are correctly identified and handled, the demo program includes an interrupt service routine that runs in a polling manner in the main loop before the serial console input handler runs. This interrupt service routine checks if any interrupts are pending and which, and calls the respective interrupt handler.
+
+The CAN interrupt handler, discussed in the [interrupts](#interrupts-and-scheduling) section, is called when the CAN frame received interrupt is detected, and reads the latest received CAN frame values. The CAN fram ID and data is then printed above the current serial console input line, an excerpt from the LiteX Terminal is shown in Listing x.y. Along with printing the CAN frame values, the interrupt handler also updates the current OrangeCrab RGB LED colour. This test of functionality is a demonstration and does not have quantitative results to explain.
+
+[Listing: CAN interrupt handler printing received CAN frame]
+
+```bash
+CAN frame    12 received, ID: 0x123, data 0x52 0x06 0x01 0x00 0x00 0x00 0x00 0x00
+
+StackSynth> input restored here
+```
 
 ## Integration with StackSynth board
 
-- TODO: Fix section title?
+Finally, the StackSynth FPGA Extension board was tested with the StackSynth module to verify that the CAN bus communication and sample generation works, including multiple keys at once. In order to test multiple key audio output, the `can_listen()` command was added to the demo program. Listing x.y shows the `can_listen()` function, which is called when the `can_listen` command is entered into the LiteX Terminal.
 
-- Output of StackSynth FPGA Extension when controlled from StackSynth board
-  - Using the `audio` header and helper functions
-  - Using the `can_listen` demo to control the StackSynth board from a CAN bus
-    - Demo `can_listen` receives incoming CAN frames and sets oscillators accordingly, the current notes are stored in a list as `std` library structures failed to compile
-    - Include the error, test with `#include <vector>`
-  - Measuring SNR (Signal to Noise Ratio) of the output
+This function keeps track of which notes are currently active and which oscillators are being used for those notes, updating the active notes and oscillator frequencies as note down and note up events are received over the CAN bus. It does not use the interrupt handler as it is a demo of audio production however the logic could be separated into tasks as part of future work to shift to a real-time operating system such as FreeRTOS, however the helper functions in the `audio` and `can` libraries are used to simplify the code.
+
+- TODO: move listing below to appendix
+
+[Listing: can_listen() function]
+
+```cpp
+const uint32_t freqs[85] = {/* integer frequencies for notes used by StackSynth module */};
+static void can_listen_cmd() {
+  for (int i = 0; i < 64; i++) { // Set all oscillators to sine wave
+    set_wave(i, WAVE_SINE);
+  }
+  bool active_notes[85] = {0};
+  uint32_t active_osc[64] = {0};
+  uint32_t active_oscs = 0;
+  while (true) {
+    can_frame frame = can_read(); // Read CAN frame
+    switch (frame.data[0]) {
+      case 'P': { // Note down event
+        uint32_t note = (frame.data[1] - 1) * 12 + frame.data[2];
+        if (active_notes[note] || active_oscs == 64) // ALready active or all oscillators in use, ignore
+
+        active_notes[note] = true;          // Mark note as active
+        active_osc[active_oscs] = note;     // Set oscillator to note
+        set_freq(active_oscs, freqs[note]); // Set oscillator frequency
+        active_oscs++;
+        break;
+      }
+      case 'R': { // Note up event
+        uint32_t note = (frame.data[1] - 1) * 12 + frame.data[2];
+        if (active_notes[note] == false) { // Not active, ignore
+          break;
+        } else if (true) {
+          active_notes[note] = false; // Mark note as inactive
+          active_oscs--;
+          if (note == active_osc[active_oscs]) { // Note is last active
+            active_osc[active_oscs] = 0;         // Clear oscillator
+            set_freq(active_oscs, 0);            // Set frequency to 0
+            break;
+          }                                             // Note is not last active
+          for (uint32_t i = 0; i <= active_oscs; i++) { // Find note
+            if (note != active_osc[i]) {
+              continue;
+            }                                                // Note found
+            uint32_t swapped_note = active_osc[active_oscs]; // Get last active note
+            set_freq(i, freqs[swapped_note]);                // Set frequency to last active
+            active_osc[i] = swapped_note;                    // Set oscillator to last active
+            set_freq(active_oscs, 0);                        // Set last oscillator to 0
+            active_osc[active_oscs] = 0;                     // Clear last active note
+            goto done;                                       // Done (break only exits for loop)
+          }
+          break;
+        }
+      }
+      default: { // Ignore other frames
+        break;
+      }
+    }
+  done:
+    if (readchar_nonblock()) { // Check for input and exit
+      getchar();
+      for (int i = 0; i < 64; i++) { // Reset all oscillators
+        audio(i, WAVE_SAWTOOTH, 0);
+      }
+      return;
+    }
+  }
+}
+```
+
+C++ standard library data structures such as a set or vector are more appropriate for such a function however the libraries failed to link when testing with the GCC compiler provided by the `litex_setup.py` script. Another version of GCC may allow standard library structures and headers to be used. Listing x.z shows the output from GCC when attempting to compile a program with `#include <vector>`.
+
+[Listing: GCC error when including vector]
+
+```bash
+/usr/riscv64-linux-gnu/include/gnu/stubs.h:8:11: fatal error: gnu/stubs-ilp32.h: No such file or directory
+    8 | # include <gnu/stubs-ilp32.h>
+```
+
+- TODO: Measure SNR and fill in
+
+Finally, a useful measure of the performance improvement in audio quality between the StackSynth and FPGA Extension boards is the SNR (Signal-to-Noise Ratio) of the audio output as a higher SNR would result in a lower noise floor and clearer audio. As shown in Table x.y, the average measured SNR of the StackSynth board was ??.? dB and of the FPGA Extension board was ??.? dB, showing a significant improvement in audio quality. The screenshots of the PicoScope measurements are included in Appendix x.y.
+
+[Table: SNR of StackSynth and FPGA Extension boards]
 
 # Evaluation
 
