@@ -60,9 +60,9 @@ always_ff @(posedge i_clk48) phase_step[ps_clk] <= {1'b0, int_phase_step[23:9]};
 logic [15:0] phase [0:63];
 for (genvar i = 0; i < 64; i++) begin: l_gen_phase
   always_ff @(posedge clk_48k) // Generate new phase sample on rising edge of 48kHz clock
-    if (!i_rst48_n)                  phase[i] <= 16'd0;                    // Reset saw
-    else if (phase_step[i] == 16'd0) phase[i] <= phase[i] >> 1;            // Divide by 2 if phase_step is 0
-    else if (!i_pause)               phase[i] <= phase[i] + phase_step[i]; // Add phase_step if not paused (48kHz)
+    if (!i_rst48_n)                  phase[i] <= 16'd0;                         // Reset saw
+    else if (phase_step[i] == 16'd0) phase[i] <= {phase[i][15], phase[i][15:1]};// Divide by 2 if phase_step is 0
+    else if (!i_pause)               phase[i] <= phase[i] + phase_step[i];      // Add phase_step if not paused (48kHz)
 end
 
 // Per Oscillator Sample Generation ################################################################
