@@ -30,6 +30,7 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 - [Abstract](#abstract)
 - [Contents](#contents)
 - [List of Figures](#list-of-figures)
+- [List of Listings](#list-of-listings)
 - [List of Tables](#list-of-tables)
 - [List of Abbreviations](#list-of-abbreviations)
 - [Introduction](#introduction)
@@ -74,6 +75,8 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 
 # List of Figures
 
+# List of Listings
+
 # List of Tables
 
 # List of Abbreviations
@@ -112,7 +115,7 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 
 # Introduction
 
-The 3rd Year Embedded Systems course of the Electrical Engineering department at Imperial College London includes a coursework designed to teach students real-time programming in a resource constrained system. The scenario of the courseowrk is a music synthesiser where audio samples must be generated consistently to ensure audio without glitches.
+The 3rd Year Embedded Systems course of the Electrical Engineering department at Imperial College London includes a coursework designed to teach students real-time programming in a resource constrained system. The scenario of the coursework is a music synthesiser where audio samples must be generated consistently to ensure audio without glitches.
 
 This project aims to extend the capabilities and performance of the existing educational platform as the microcontroller currently used in the coursework is limited to a small number of oscillators and basic audio effects. A key factor in the success of this project is that a student should be able to interact with the provided gateware in a similar manner to the existing coursework.
 
@@ -122,12 +125,12 @@ This project provides code for the gateware needed to run user-written programs,
 
 The report is structured as follows:
 
-- Chapter 2 - Background - Determines the project base and goals, and introduces aspects of the project that are pre-determined, including the FPGA used and external components present on the StackSynth Extension board
-- Chapter 3 - Analysis and Design - Lays out the architecture of the system and connections between modules
-- Chapter 4 - Implementation - Details the design decisions made during development and features of the project as completed
-- Chapter 5 - Testing and Results - Covers testing throughout the project used to verify functional correctness of the design and measure performance
-- Chapter 6 - Evaluation - Evaluates the project on progress against the identified objectives and areas that can be improved
-- Chapter 7 - Conclusion - Concludes the project, including insights into future work
+- **Chapter 2 - Background** - Determines the project base and goals, and introduces aspects of the project that are pre-determined, including the FPGA used and external components present on the StackSynth Extension board
+- **Chapter 3 - Analysis and Design** - Lays out the architecture of the system and connections between modules
+- **Chapter 4 - Implementation** - Details the design decisions made during development and features of the project as completed
+- **Chapter 5 - Testing and Results** - Covers testing throughout the project used to verify functional correctness of the design and measure performance
+- **Chapter 6 - Evaluation** - Evaluates the project on progress against the identified objectives and areas that can be improved
+- **Chapter 7 - Conclusion** - Concludes the project, including insights into future work
 
 # Background
 
@@ -189,11 +192,28 @@ LiteX has support for a large range of boards, and the creator of the OrangeCrab
 
 The LiteX project initially built upon [Migen](https://github.com/m-labs/migen) ([homepage](https://m-labs.hk/gateware/migen/)), so many of the Migen cores are still available and the overall method of defining modules, synchronous and combinatorial logic remains in line with Migen. Migen - and by extension LiteX - is a DSL (Domain Specific Language) using Python and the dictionary nature of all variables to provide terse syntax for defining logic. This syntax is shown in Listing x.y [below].
 
-[Listing: Diagram of defining `comb` and `sync` logic in LiteX]
+[Listing: Example of defining `comb` and `sync` logic in LiteX]
 
-After defining logic and instantiating blocks within a design, the provided `Builder()` function iterates through the map of the defined `BaseSoC` object and converts the design to a Verilog file representing the full design. The resulting Verilog file has ports for connections to external pins, defined in the Pin Constraints File, and is synthesised using Yosys, along with any SystemVerilog and Verilog files instantiated within the design using the `Instance()` function. An example of this is shown in Listing x.y [below].
+```python
+self.delay = Signal()
+self.delay1 = Signal()
+self.comb += self.delay1.eq(self.delay + 1)
+self.sync += self.delay.eq(self.delay1)
+```
+
+After defining logic and instantiating blocks within a design, the provided `Builder()` function iterates through the map of the defined `BaseSoC` object and converts the design to a Verilog file representing the full design. The resulting Verilog file has ports for connections to external pins, defined in the Pin Constraints File, and is synthesised using Yosys, along with any SystemVerilog and Verilog files instantiated within the design using the `Instance()` function. An example of this is shown in Listing x.y [below], taken from [modules/testPropagation.py](modules/testPropagation.py) where the `saw2sin` module is instantiated.
 
 [Listing: Example of `Instance()` function]
+
+```python
+self.i_saw = Signal(16)
+self.o_sin = Signal(16)
+self.specials += Instance("saw2sin",
+    i_i_clk = ClockSignal(),
+    i_i_saw = self.i_saw,
+    o_o_sin = self.o_sin,
+)
+```
 
 The key components of LiteX used in this project are:
 
@@ -214,9 +234,25 @@ The key components of LiteX used in this project are:
 
 The [PCM1780](https://www.ti.com/product/PCM1780) is a 2 channel DAC supporting 16-24bit samples at a 8-192kHz sampling frequency. Audio samples can be input via I2S, right-justified or left-justified formats, and separate buses are used for transferring audio samples or controlling the mode settings of the DAC. The PCM1780 is used in this project to provide superior audio quality than other methods of outputting audio from the FPGA, such as PWM (Pulse Width Modulation).
 
-The PCM1780 settings are controlled via a 3-wire SPI-like interface, with a chip-select, clock and data-in pin. No data is ever read from the DAC so the data-out pin is not present. The available settings are shown in Table x.y [below], taken from [Table 5. User-Programmable Mode Controls] of the [datasheet](https://www.ti.com/lit/gpn/pcm1780) or [direct pdf](https://www.ti.com/lit/ds/symlink/pcm1780.pdf).
+The PCM1780 settings are controlled via a 3-wire SPI-like interface, with a chip-select, clock and data-in pin. No data is ever read from the DAC so the data-out pin is not present. The available settings are shown in Table x.y [below], taken from [Table 5. User-Programmable Mode Controls] of the [datasheet](https://www.ti.com/lit/gpn/pcm1780).
 
 [Table: PCM1780 settings]
+
+| Function                          | Reset Default              | Register | Bit(s)             |
+| --------------------------------- | -------------------------- | -------- | ------------------ |
+| Digital attenuation control       | 0 dB, no attenuation       | 16 + 17  | AT1[7:0], AT2[7:0] |
+| Soft mute control                 | Mute disabled              | 18       | MUT[2:0]           |
+| Oversampling rate control         | ×64, ×32, ×16              | 18       | OVER               |
+| Soft reset control                | Reset disabled             | 18       | SRST               |
+| DAC operation control             | DAC1 and DAC2 enabled      | 19       | DAC[2:1]           |
+| De-emphasis function control      | De-emphasis disabled       | 19       | DM12               |
+| De-emphasis sample rate selection | 44.1 kHz                   | 19       | DMF[1:0]           |
+| Audio data format control         | 24-bit, left-justified     | 20       | FMT[2:0]           |
+| Digital filter rolloff control    | Sharp rolloff              | 20       | FLT                |
+| Digital attenuation mode select   | 0 to –63 dB, 0.5 dB/step   | 21       | DAMS               |
+| Output phase select               | Normal Phase               | 22       | DREV               |
+| Zero-flag polarity select         | High                       | 22       | ZREV               |
+| Zero-flag function select         | L-, R-channels independent | 22       | AZRO               |
 
 The default settings for the PCM1780 are ideal for this project, though the digital attenuation may be used as another point of volume control, possibly to normalise the output volume regardless of the number of oscillators that are active. As such the only settings that need to be modified are the attenuation level for the left and right channels.
 
@@ -248,9 +284,11 @@ An important requirement of all CAN variants is that each frame must be acknowle
 
 The CAN Specification also indicates that the bus should be sampled at 75% of the "bit time", or 6us into a bit for a 8us period in low-speed CAN. This precise timing is maintained by synchronising every device on the CAN bus with each incoming recessive to dominant transmission. This occurs at the start of each frame as well as throughout the frame, at least as often as every 10 bits due to the presence of stuffed bits, preventing a build-up of clock skew and errors in sampled bits.
 
-The CAN protocol is a NRZ (Non Return-to-Zero) protocol, meaning consecutive bits of the same polarity result in no change in the bus state. If many consecutive bits of the same polarity were transmitted, this could result in devices losing synchronisation with each other if there were differences in internal clock frequencies and timing. To prevent this, bit stuffing is used, where extra bits of opposing polarity are added after a sequence of consecutive bits of the same polarity, with stuffed bits counting towards the sequence of consecutive bits. In CAN, a stuffed bit is added after 5 consecutive bits of the same polarity, so a stuffed bit can occur after every 4 non-stuffed bits. This is shown in Listing x.y [below], where a sequence of 10 bits is stuffed to a length of 12 bits, with the 6th and 11th bits being stuffed bits. An error occurs on the CAN bus if 6 consecutive bits of the same polarity are detected, with the exception of the End-Of-Frame marker which has no stuffed bits and is always 7 consecutive 1s.
+The CAN protocol is a NRZ (Non Return-to-Zero) protocol, meaning consecutive bits of the same polarity result in no change in the bus state. If many consecutive bits of the same polarity were transmitted, this could result in devices losing synchronisation with each other if there were differences in internal clock frequencies and timing. To prevent this, bit stuffing is used, where extra bits of opposing polarity are added after a sequence of consecutive bits of the same polarity, with stuffed bits counting towards the sequence of consecutive bits. In CAN, a stuffed bit is added after 5 consecutive bits of the same polarity, so a stuffed bit can occur after every 4 non-stuffed bits. This is shown in Listing x.y [below], where a sequence of 10 bits is stuffed to a length of 12 bits, with the 6th and 11th bits being stuffed bits indicated in red. An error occurs on the CAN bus if 6 consecutive bits of the same polarity are detected, with the exception of the End-Of-Frame marker which has no stuffed bits and is always 7 consecutive 1s.
 
-[Listing: Bit stuffing example] 0000011110 -> 00000**1**1111**0**0
+[Listing: Bit stuffing example]
+
+$0000011110 \rightarrow 00000\textcolor{red}{1}1111\textcolor{red}{0}0$
 
 A complete CAN bus frame is shown [below] in Figure x.y, where the frame ID is xxx, and the frame contains xxx bytes of data. In the case of the StackSynth module, the data length is hardcoded to 8 bytes within the CAN helper library, with unused bytes being ignored by the receiving device.
 
@@ -301,7 +339,7 @@ This section details the implementation of the project, with sub-sections coveri
 
 As this project is built using the LiteX Framework, the project implementation begins with setting up the framework and creating a basic SoC including a custom module and connections from the CPU to the module so that the module can be controlled from software running on the CPU. A LiteX project consists of a main Python script that creates a class instance representing the SoC to be built including all peripherals and sub-modules, [`make.py`](make.py) in this project. This file is based on the [`gsd_orangecrab.py`](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/targets/gsd_orangecrab.py) target file from the [litex-boards GitHub repository](https://github.com/litex-hub/litex-boards/), with modifications made to add the custom modules created as part of this project and debugging tools such as the LiteScope Analyzer. The build script uses the OrangeCrab platform class, which defaults to a VexRiscV-Standard CPU as the SoC core, but can be overridden from the command line with the `--cpu-type` and `--cpu-variant` flags.
 
-An initial test of custom module creation was performed by replacing the LiteX-provided `LedChaser` with a custom module that reads a value set from a CSR and outputs the 3 PWM signals for the red, green and blue pins of the `user_led` (LED on the OrangeCrab). The [`TestRgb`](modules/testRGB.py) module creates a `SCRStorage` memory representing the target RGB value for the LED in 24 bit colour, and this register is connected to an input of the [`ledPwm`](rtl/ledPwm.sv) SystemVerilog module where an 8 bit counter increments at the 48MHz system clock and the output is high if the target value is greater than the counter value for each LED channel. The three output pins are then connected using a `comb` statement to the LED pin objects within the LiteX module, and the SystemVerilog source file is added to the list of sources provided to Yosys for synthesis. The LiteX and SystemVerilog modules are included in Listings x.y and x.z respectively for reference.
+An initial test of custom module creation was performed by replacing the LiteX-provided `LedChaser` with a custom module that reads a value set from a CSR and outputs the 3 PWM signals for the red, green and blue pins of the `user_led` (LED on the OrangeCrab). The [`TestRgb`](modules/testRGB.py) module creates a `SCRStorage` memory representing the target RGB value for the LED in 24 bit colour, and this register is connected to an input of the [`ledPwm`](rtl/ledPwm.sv) SystemVerilog module where an 8 bit counter increments at the 48MHz system clock and the output is high if the target value is greater than the counter value for each LED channel. The three output pins are then connected using a `comb` statement to the LED pin objects within the LiteX module, and the SystemVerilog source file is added to the list of sources provided to Yosys for synthesis. The LiteX and SystemVerilog modules are included in Listing x.y and Listing x.z respectively for reference.
 
 [Listing: `TestRgb` LiteX Module](modules/testRGB.py)
 
@@ -393,7 +431,7 @@ These target frequencies are then converted to phase step values for a 24 bit ph
 [Listing: Equation for calculating phase step value]
 
 $$
-\text{Phase Step} = \frac{2^{24}}{48000} \times \text{Target Frequency} = 349.525... \times \text{Target Frequency}
+\text{Phase Step} = \frac{2^{24}}{48000} \times \text{Target Frequency} \approx 349.525... \times \text{Target Frequency}
 $$
 
 Listing x.z shows the SystemVerilog implementation of this equation, where the multiplication is approximated with a multiplication by $699$ followed by a shift right to divide by 2. The value is shifted another 8 bits to truncate the 24 bit value to a 16 bit value used in the remaining logic, however this step could be removed if the phase accumulator was extended to 24 bits.
@@ -402,7 +440,7 @@ Listing x.z shows the SystemVerilog implementation of this equation, where the m
 
 ```systemverilog
 logic [23:0] int_phase_step; // Phase step calc from target frequency
-always_comb int_phase_step = (24'd699 * t_freq[ps_clk]); // 699 = (2^24 / 48000) * 2 (Approximately)
+always_comb int_phase_step = (24'd699 * t_freq[ps_clk]); // 699 approx (2^24 / 48000) * 2
 
 logic [15:0] phase_step [0:63]; // Shift step right correctly (2^9)
 always_ff @(posedge i_clk48) phase_step[ps_clk] <= {1'b0, int_phase_step[23:9]};
@@ -412,9 +450,16 @@ always_ff @(posedge i_clk48) phase_step[ps_clk] <= {1'b0, int_phase_step[23:9]};
 
 Once per 48kHz cycle, each phase accumulator is incremented by the respective phase step value for that oscillator. Along with the phase to amplitude converter, this forms a numerically controlled oscillator. Numerically controlled oscillators are commonly used in digital signal processing, PLLs and many radio systems. [ZipCPU Blog reference](https://zipcpu.com/dsp/2017/12/09/nco.html) [Microchip reference](https://www.microchip.com/en-us/products/microcontrollers-and-microprocessors/8-bit-mcus/core-independent-and-analog-peripherals/waveform-control/numerically-controlled-oscillator) [Lattice reference](https://www.latticesemi.com/products/designsoftwareandip/intellectualproperty/ipcore/ipcores02/numericallycontrolledoscillator) Key benefits include dynamic frequency control and phase adjustment, frequency accuracy and ease of implementation. The phase accumulator can be simplified by aligning the overflow point with the point where the phase accumulator would be reset to 0, or equivalently, if the phase accumulator is stored using `N` bits, a value of `2^N` represents an angle of 360°.
 
-For the sawtooth, square and triangle waveforms, direct bit-level conversions are used from the phase input. Conversion from phase to a sine wave is done in the `saw2sin` SystemVerilog module, which is a wrapper around a quarter wave CORDIC module. The `cordic` SystemVerilog module has a 16 bit phase input which represents phase inputs 0° - 90°, and outputs a 16 bit amplitude which represents the sine output from 0 to 1. The conversion from 0° - 360° to 0° - 90° for input to the CORDIC module is done by the `saw2sin` module, which also converts the quarter wave output into a full wave. Table x.y shows the subtraction of the phase input and inversion of the output required to convert the quarter wave CORDIC module into a full sine wave.
+For the sawtooth, square and triangle waveforms, direct bit-level conversions are used from the phase input. Conversion from phase to a sine wave is done in the `saw2sin` SystemVerilog module, which is a wrapper around a quarter wave CORDIC module. The `cordic` SystemVerilog module has a 16 bit phase input which represents phase inputs 0° - 90°, and outputs a 16 bit amplitude which represents the sine output from 0 to 1. The conversion from 0° - 360° to 0° - 90° for input to the CORDIC module is done by the `saw2sin` module, which also converts the quarter wave output into a full wave. Table x.y shows the subtraction of the phase input and inversion of the output required to convert the quarter wave CORDIC module into a full sine wave, where reversing the input refers to $65535 - ((x~\text{mod}~16384) \times 4)$.
 
 [Table: Conversion flags of quarter wave CORDIC module to full sine wave]
+
+| Phase Range | phase[15] | phase[14] | Reverse CORDIC Input | Negate CORDIC Output |
+| ----------- | --------- | --------- | -------------------- | -------------------- |
+| 0° - 90°    | 0         | 0         | No                   | No                   |
+| 90° - 180°  | 0         | 1         | Yes                  | No                   |
+| 180° - 270° | 1         | 0         | No                   | Yes                  |
+| 270° - 360° | 1         | 1         | Yes                  | Yes                  |
 
 ### Sine Wave Approximation
 
@@ -479,13 +524,41 @@ always_comb o_sample = samples_sum[15:0];    // Truncate output to 16 bits
 
 After the signed 16 bit samples have been generated, they must be transferred from the 48MHz system clock domain to the 36.864MHz DAC clock domain. Table x.y shows Table 1 from the PCM1780 [datasheet], where a sampling frequency of 48kHz allows for the following DAC system clock frequencies: 6.144MHz, 9.216MHz, 12.288MHz, 18.432MHz, 24.576MHz, 36.864MHz. Of these, 36.864MHz allows for the greatest number of cycles per sample increasing the precision of the DAC driver SystemVerilog module, at 768 cycles per sample. The DAC system clock is generated by a PLL primitive block provided by the Lattice ECP5 FPGA, which is configured to use the 48MHz system clock as the input clock, and the 36.864MHz DAC system clock as the output clock.
 
+- TODO: fix table formatting
+
 [Table: PCM1780 - Table 1. System Clock Frequencies for Common Audio Sampling Frequencies]
+
+| Sampling Frequency (kHz) | System  | Clock   | Frequency | (MHz)   |         |         |         |
+| ------------------------ | ------- | ------- | --------- | ------- | ------- | ------- | ------- |
+| -                        | 128 fS  | 192 fS  | 256 fS    | 384 fS  | 512 fS  | 768 fS  | 1152 fS |
+| 8                        | 1.024   | 1.536   | 2.048     | 3.072   | 4.096   | 6.144   | 9.216   |
+| 16                       | 2.048   | 3.072   | 4.096     | 6.144   | 8.192   | 12.288  | 18.432  |
+| 32                       | 4.096   | 6.144   | 8.192     | 12.288  | 16.384  | 24.576  | 36.864  |
+| 44.1                     | 5.6448  | 8.4672  | 11.2896   | 16.9344 | 22.5792 | 33.8688 | –       |
+| 48                       | 6.144   | 9.216   | 12.288    | 18.432  | 24.576  | 36.864  | –       |
+| 88.2                     | 11.2896 | 16.9344 | 22.5792   | 33.8688 | –       | –       | –       |
+| 96                       | 12.288  | 18.432  | 24.576    | 36.864  | –       | –       | –       |
+| 192                      | 24.576  | 36.864  | –         | –       | –       | –       | –       |
 
 Transferring the samples is achieved using an Asynchronous FIFO where the read and write ports can be accessed from different clock domains. LiteX provides modules called `AsyncFIFO` and `ClockDomainCrossing`, however both require a `layout` parameter and no documentation is present for the format of this parameter so these modules were not used. An initial attempt was also made to design an Asynchronous FIFO from scratch following a ZipCPU Blog Post on [Crossing clock domains with an Asynchronous FIFO](https://zipcpu.com/blog/2018/07/06/afifo.html) however further research through the source files of the LiteX project revealed the [Migen](https://github.com/m-labs/migen) [`AsyncFIFO`](https://github.com/m-labs/migen/blob/master/migen/genlib/fifo.py#L177) module. This module is derived from a `_FIFOInterface` class alongside documentation of the signals that are available and their expected connections to other modules.
 
-The Migen `AsyncFIFO` module uses grey counters to keep track of the read and write pointers within the FIFO, preventing single bit flips from causing large glitches in the pointer values as they cross between the read and write port clock domains. In practice, the FIFO will be written to and read from at 48kHz from both clock domains, with large pauses between each sample from the perspective of both clock domains. In addition, the LiteX report states the frequency of the DAC clock domain is likely to be closer to 36.94MHz which means the FIFO will be read quicker than it is filled, and should never reach the full state nor cause the sample generation to stall. The excerpt from the LiteX report is shown in Listing x.y.
+The Migen `AsyncFIFO` module uses grey counters to keep track of the read and write pointers within the FIFO, preventing single bit flips from causing large glitches in the pointer values as they cross between the read and write port clock domains. In practice, the FIFO will be written to and read from at 48kHz from both clock domains, with large pauses between each sample from the perspective of both clock domains. In addition, the LiteX report states the frequency of the DAC clock domain is likely to be closer to 36.92MHz which means the FIFO will be read more often than it is filled, and should never reach the full state nor cause the sample generation to stall. The excerpt from the LiteX report is shown in Listing x.y, where the DAC system clock output is `clko2` and the `clko0` and `clko1` outputs drive half and double system frequency clocks used for required primitive modules.
 
 [Listing: LiteX report excerpt showing DAC clock frequency]
+
+```bash
+INFO:ECP5PLL:Config:
+clko1_freq : 24.00MHz
+clko1_div  : 20
+clko1_phase: 0.00°
+clko0_freq : 96.00MHz
+clko0_div  : 5
+clko0_phase: 0.00°
+clko2_freq : 36.92MHz
+clko2_div  : 13
+clko2_phase: 0.00°
+vco        : 480.00MHz
+```
 
 ## Driving the DAC (PCM1780)
 
@@ -496,6 +569,14 @@ In this project, the bit clock is driven at 48 times the sampling frequency or e
 The PCM1780 mode bus is driven from the `dacAttenuation` SystemVerilog module as attenuation was identified as the only setting that may need to be user-adjustable. This module operates in the main 48MHz clock domain and divides the incoming clock by 8 to produce a 6MHz clock, which is below the 10MHz limit specified in the PCM1780 datasheet. Two shift registers are used to drive the chip select and data pins, shifting out a new value on each falling edge of the 6MHz clock signal. These shift registers are reloaded when an input valid signal is high, detected by creating a buffer register to hold the signal high for long enough to be detected in the slower 6MHz clock domain. An excerpt of the data shift register is shown in Listing x.y.
 
 [Listing: Excerpt of the dacAttenuation data shift register]
+
+```systemverilog
+logic [34:0] data;
+always_ff @(negedge o_clock) // Update DATA on falling edge of CLOCK
+  if (!i_rst48_n)    {o_data, data} <= 36'h000000000;
+  else if (valid[7]) {o_data, data} <= {8'd16, volume, 2'd0, 8'd17, volume, 2'd0};
+  else               {o_data, data} <= {data, 1'b0};
+```
 
 Testing of the design with both the `dacDriver` and `dacAttenuation` SystemVerilog modules instantiated in the top level design resulted in the design failing to boot. When either module is instantiated without the other, the design appears to boot correctly, however debugging the design when both modules are present is difficult as the LiteScope Analyzer does not function when the design fails to boot. After discussing the issue with the project supervisor, it was decided that the dacAttenuation module can be removed from the design at this stage as it is not required for a Proof-of-Concept demonstration.
 
@@ -512,14 +593,14 @@ The module is also connected to a second Wishbone UART module as a separate conn
 ```python
 self.add_uartbone(name="debug_uart", baudrate=921600)
 from litescope import LiteScopeAnalyzer
-analyzer_signals = [
+signals = [
     self.audio.dac_lrck,
     self.audio.dac_bck,
     self.audio.dac_data,
     # ... other signals to capture
 ]
 from math import ceil, floor
-analyzer_depth = floor(190_000 / ((ceil(sum([s.nbits for s in analyzer_signals]) / 16)) * 16))
+analyzer_depth = floor(190_000 / ((ceil(sum([s.nbits for s in signals]) / 16)) * 16))
 self.submodules.analyzer = LiteScopeAnalyzer(
     analyzer_signals,
     depth        = analyzer_depth,
@@ -543,9 +624,14 @@ A similar process was used in verifying the 3 signal outputs of the `dacDriver` 
 
 A CAN receiver is required within the FPGA fabric to handle ACK signal generation and act as an interface between the CPU within the SoC and the external ATA6561 CAN Transceiver. The [`can`](rtl/can.sv) SystemVerilog module contains logic for filtering of received CAN frames by ID and generation of ACK bits for accepted CAN frames.
 
-The LiteX `CanReceiver` module contains two 11 bit `CSRStorage` fields, `can_id` and `id_mask`, shown in Listing x.y. These fields can be set from the CPU via the CSR bus and allow software to set the filter ID and mask. For every incoming CAN frame, the ID in the received frame is compared to the `can_id` value, and as long as all bits match where the respective `id_mask` bit is 1, the `id_match` flag is driven high.
+The LiteX `CanReceiver` module contains two 11 bit `CSRStorage` fields, `can_id` and `id_mask`, shown in Listing x.y. These fields can be set from the CPU via the CSR bus and allow software to set the filter ID and mask. For every incoming CAN frame, the ID in the received frame is compared to the `can_id` value, and as long as all bits match where the respective `id_mask` bit is 1, the `id_match` flag is driven high. The `can_id` reset value of `0x123` is used to match the Embedded Systems module coursework, and the `id_mask` reset value of `0x7FF` means only CAN frames with an ID of `0x123` will be acknowledged and stored by the module.
 
 [Listing: CanReceiver CSRStorage fields]
+
+```python
+self.can_id = CSRStorage(size = 11, reset = 0x123, description = "CAN ID filter")
+self.id_mask = CSRStorage(size = 11, reset = 0x7FF, description = "Mask for CAN ID")
+```
 
 An internal counter that is incremented at 48MHz keeps track of the current bit time, where each CAN bit is expected to last for 384 cycles at 48MHz. Bits are sampled and added to the internal shift register on the rising edge of the system clock at 75% of the bit time, when the internal counter is at 287. The internal counter is reset to 0 when the current value is 383 or when a recessive to dominant (1 to 0) transition is detected on the CAN bus, maintaining synchronisation with the CAN bus and other devices.
 
@@ -556,6 +642,13 @@ A CAN Frame has been correctly received when the masked received ID and `can_id`
 When the `msg_valid` flag is active, an output pin connected to an `EventSourcePulse` object is driven high for 1 cycle at 48MHz. This event source is connected to an `EventManager` which is connected to the CPU interrupt bus, creating a hardware interrupt that can be handled in an Interrupt Service Routine to copy the CAN frame ID and data into CPU memory. This interrupt logic is created in the [`canReceiver.py`](modules/canReceiver.py) module, and an excerpt of the code showing the interrupt logic is in Listing x.y. Interrupt handling in LiteX is discussed in more detail in the [interrupts](#interrupts-and-scheduling) section.
 
 [Listing: canReceiver.py excerpt showing interrupts]
+
+```python
+self.submodules.ev = EventManager()
+self.ev.frame = EventSourcePulse(description = "CAN frame received, sets pending bit")
+self.ev.finalize()
+self.comb += self.ev.frame.trigger.eq(self.rcv_pulse)
+```
 
 In the interest of a quicker working proof of concept design, the `can` module matches values hard-coded into the `ES-CAN` library provided in the Embedded Systems module coursework. The DLC (Data Length Code) of CAN frames is expected to always be 8 bytes, so the DLC value is not exposed to the CPU and frames with less than 8 bytes are not acknowledged or stored. The `can` module can be extended to provide the received DLC value to the CPU via a `CSRStatus` field. The `can` module also does not check the CRC bits of the received frame, as bit flip errors are highly unlikely due to the short length of the CAN connection and the use of low-speed CAN. A `crc_match` signal is currently driven constant high but provides a location for CRC checking to be implemented in the future.
 
@@ -640,7 +733,42 @@ Along with the LiteX built-in `Timer` module, interrupts can be used to create h
 
 ## FPGA Utilisation
 
-As this project uses an FPGA, a major limitation on the performance of the design is the available resources. In the output of the nextpnr placement stage, there is a device utilisation report which shows the number of each type of logic element and primitive block used. An excerpt of the report during a compilation of the final design is included in Listing x.y.
+As this project uses an FPGA, a major limitation on the performance of the design is the available resources. In the output of the nextpnr placement stage, there is a device utilisation report which shows the number of each type of logic element and primitive block used. Table x.y shows the FPGA utilisation report, and an excerpt of the logs containing the original report is included in Appendix x.y.
+
+[Table: FPGA utilisation report]
+
+| Logic Element   | Used  | Total | Utilisation % |
+| --------------- | ----- | ----- | ------------- |
+| TRELLIS_IO      | 74    | 197   | 37            |
+| DCCA            | 8     | 56    | 14            |
+| DP16KD          | 49    | 56    | 87            |
+| MULT18X18D      | 2     | 28    | 7             |
+| ALU54B          | 0     | 14    | 0             |
+| EHXPLLL         | 2     | 2     | 100           |
+| EXTREFB         | 0     | 1     | 0             |
+| DCUA            | 0     | 1     | 0             |
+| PCSCLKDIV       | 0     | 2     | 0             |
+| IOLOGIC         | 49    | 128   | 38            |
+| SIOLOGIC        | 0     | 69    | 0             |
+| GSR             | 0     | 1     | 0             |
+| JTAGG           | 0     | 1     | 0             |
+| OSCG            | 0     | 1     | 0             |
+| SEDGA           | 0     | 1     | 0             |
+| DTR             | 0     | 1     | 0             |
+| USRMCLK         | 0     | 1     | 0             |
+| CLKDIVF         | 1     | 4     | 25            |
+| ECLKSYNCB       | 1     | 10    | 10            |
+| DLLDELD         | 0     | 8     | 0             |
+| DDRDLL          | 1     | 4     | 25            |
+| DQSBUFM         | 2     | 8     | 25            |
+| TRELLIS_ECLKBUF | 3     | 8     | 37            |
+| ECLKBRIDGECS    | 1     | 2     | 50            |
+| DCSC            | 0     | 2     | 0             |
+| TRELLIS_FF      | 7790  | 24288 | 32            |
+| TRELLIS_COMB    | 24126 | 24288 | 99            |
+| TRELLIS_RAMW    | 95    | 3036  | 3             |
+
+- TODO: Move to appendix
 
 [Listing: FPGA utilisation report]
 
@@ -676,9 +804,7 @@ Info:           TRELLIS_COMB: 24126/24288    99%
 Info:           TRELLIS_RAMW:    95/ 3036     3%
 ```
 
-- TODO: Work out TRELLIS_COMB breakdown for CPU, Bus logic, Wave generator, other blocks
-
-Lines of importance from Listing x.y include:
+Lines of importance from Table x.y include:
 
 - DP16KD: dual-port RAM blocks, used in the CPU and the sample storage of the LiteScope Analyzer
   - 49/56 used: the memory of the Analyzer is limited due to this, but the design is unlikely to require more than are currently used
@@ -726,18 +852,18 @@ The testbench is a function which loops through the 65536 possible input values,
 ```python
 # import statements...
 
-@cocotb.test()                                                   # cocotb test decorator
+@cocotb.test() # cocotb test decorator
 async def test_new_cordic(dut):
-    await cocotb.start(Clock(dut.i_clk, 10, units='ps').start()) # start the clock coroutine
-    diff = 0                                                     # total error
-    for cycle in range(0, 65536):                                # loop through all input values
-        dut.i_saw.value = cycle                                  # set the input phase
-        await Timer(20, units='ps')                              # wait to allow the output to settle
-        e_sin = 32768 * (sin((cycle * pi) / (2**15)) + 1)        # calculate the expected output
-        error = float(dut.o_sin.value) - e_sin                   # calculate the error
-        if abs(error) > 2:                                       # log any errors above 2
-            dut._log.info()                                      #   error message...
-        diff += abs(error)                                       # add the error to the total
+    await cocotb.start(Clock(dut.i_clk, 10, units='ps').start()) # start clock coroutine
+    diff = 0                                              # total error
+    for cycle in range(0, 65536):                         # loop through input values
+        dut.i_saw.value = cycle                           # set the input phase
+        await Timer(20, units='ps')                       # wait so output can settle
+        e_sin = 32768 * (sin((cycle * pi) / (2**15)) + 1) # calculate expected output
+        error = float(dut.o_sin.value) - e_sin            # calculate error
+        if abs(error) > 2:                                # log any errors above 2
+            dut._log.info()                               #   error message...
+        diff += abs(error)                                # add error to the total
 
     dut._log.info("Testbench finished, average error %f" % (diff / 65536))
 ```
@@ -800,7 +926,8 @@ always_comb // Select waveform sample based on wav_sel for current oscillator
   endcase
 
 // Sample captured on cycle 3
-always_ff @(posedge i_clk48) if ((clk_div[1:0] == 2'd3) && osc_valid) samples[clk_div[7:2]] <= sample;
+always_ff @(posedge i_clk48) if ((clk_div[1:0] == 2'd3) && osc_valid)
+  samples[clk_div[7:2]] <= sample;
 
 // Remaining module code...
 ```
@@ -908,7 +1035,8 @@ C++ standard library data structures such as a set or vector are more appropriat
 [Listing: GCC error when including vector]
 
 ```bash
-/usr/riscv64-linux-gnu/include/gnu/stubs.h:8:11: fatal error: gnu/stubs-ilp32.h: No such file or directory
+/usr/riscv64-linux-gnu/include/gnu/stubs.h:8:11:
+fatal error: gnu/stubs-ilp32.h: No such file or directory
     8 | # include <gnu/stubs-ilp32.h>
 ```
 
@@ -917,6 +1045,11 @@ C++ standard library data structures such as a set or vector are more appropriat
 Finally, a useful measure of the performance improvement in audio quality between the StackSynth and FPGA Extension boards is the SNR (Signal-to-Noise Ratio) of the audio output as a higher SNR would result in a lower noise floor and clearer audio. As shown in Table x.y, the average measured SNR of the StackSynth board was ??.? dB and of the FPGA Extension board was ??.? dB, showing a significant improvement in audio quality. The screenshots of the PicoScope measurements are included in Appendix x.y.
 
 [Table: SNR of StackSynth and FPGA Extension boards]
+
+| Board          | SNR (dB) |
+| -------------- | -------- |
+| StackSynth     | ??.??    |
+| FPGA Extension | ??.??    |
 
 # Evaluation
 
@@ -936,7 +1069,7 @@ The current design is very high in resource utilisation when synthesised using Y
 
 This report presented the available resources and implementation of an FPGA Accelerator for the StackSynth module, allowing for many more oscillators than is possible solely in the CPU of the Nucleo L432KC microcontroller. The shared use of computational logic reduces the resource requirements of the design and allows for the use of the OrangeCrab FPGA which is small enough to fit next to the main StackSynth module. Careful timing analysis of high speed signals using LiteScope Analyzer along with the PicoScope for longer-duration signals contributed to the protocol compatible function of the `canReceiver` and `dacDriver` modules.
 
-The main beenfit of the work completed in this project is the ability to extend the current design with new modules while supporting software control of these new modules, as much of the benefit of LiteX comes from the automatic generation of pre-processor definitions and functions to ease communication with and control of external modules.
+The main benefit of the work completed in this project is the ability to extend the current design with new modules while supporting software control of these new modules, as much of the benefit of LiteX comes from the automatic generation of pre-processor definitions and functions to ease communication with and control of external modules.
 
 While working on the implementation of this project, possible avenues for further work were identified, specifically greater precision in target frequencies and the addition of software support for hardware interrupts to the embedded CPU.
 
