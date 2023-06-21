@@ -313,7 +313,6 @@ def main():
         **parser.soc_argdict)
     if args.with_spi_sdcard:
         soc.add_spi_sdcard()
-    args.csr_csv = "csr.csv"
     builder = Builder(soc, **parser.builder_argdict)
     if args.build:
         builder.build(**parser.toolchain_argdict)

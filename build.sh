@@ -4,7 +4,7 @@ read -p "Rebuild gateware? [y/N]" -n 1 -r REBUILD
 if [[ $REBUILD =~ ^[Yy]$ ]]; then
     echo # Move to next line
     rm -f analyzer.csv csr.csv gsd_orangecrab.dfu kernel.bin && echo "Cleaned up previous run files"
-    python3 make.py --build --doc --cpu-type picorv32 --cpu-variant standard --nextpnr-ignoreloops
+    python3 make.py --build --doc --cpu-type picorv32 --cpu-variant standard --nextpnr-ignoreloops --csr-csv csr.csv
     cp build/gsd_orangecrab/gateware/gsd_orangecrab.bit gsd_orangecrab.dfu && echo "Copied .bit to .dfu"
     dfu-suffix -v 1209 -p 5af0 -a gsd_orangecrab.dfu && echo "Added DFU suffix for target (VID:PID)"
     rm -r docs/ && echo "Deleted old docs in project root"
