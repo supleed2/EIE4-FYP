@@ -1,5 +1,13 @@
 Write-up of `FPGA Accelerator for StackSynth`
 
+- TODOs
+  - Analysis and Design Section
+  - Reduce use of backticks
+  - Move large listings to appendix
+  - Measure SNR
+  - Move User Guide into appendix
+  - DS1881E-050+ Volume control???
+
 # Title Page
 
 Standard Template is on Intranet
@@ -256,13 +264,19 @@ The PCM1780 settings are controlled via a 3-wire SPI-like interface, with a chip
 
 The default settings for the PCM1780 are ideal for this project, though the digital attenuation may be used as another point of volume control, possibly to normalise the output volume regardless of the number of oscillators that are active. As such the only settings that need to be modified are the attenuation level for the left and right channels.
 
-The default settings also include the audio sample format of left-justified, which allows for flexibility of the sample depth as a 16-bit sample is equivalent to a 24-bit sample where the low 8 bits are 0. This is shown in Figure x.y [below], taken from [Figure 22. Audio Data Input Formats] of the datasheet. To give this output, a shift register can be used to output the sample bit by bit, updated on the falling edge of the bit clock as shown in Figure x.y [below]. The bit clock can run at 32x, 48x or 64x the sampling frequency and can be selected for easier implementation within the SystemVerilog design, though the bit depth is limited by lower bit clock frequencies.
+The default settings also include the audio sample format of left-justified, which allows for flexibility of the sample depth as a 16-bit sample is equivalent to a 24-bit sample where the low 8 bits are 0. To give this output, a shift register can be used to output the sample bit by bit, updated on the falling edge of the bit clock as shown in Appendix x.y, taken from [Figure 22. Audio Data Input Formats] of the datasheet. The bit clock can run at 32x, 48x or 64x the sampling frequency and can be selected for easier implementation within the SystemVerilog design, though the bit depth is limited by lower bit clock frequencies.
+
+- TODO: move to appendix
 
 [Figure: PCM1780 audio data input formats]
+
+![PCM1780 audio data input formats](notes/audioInputFormats.png)
 
 The timing diagram of the control interface is shown in Figure x.y [below], taken from [Figure 26. Control Interface Timing] of the datasheet. In the figure, `MC pulse cycle time` limits the maximum frequency of the clock signal, and the value of 100ns results in a maximum frequency of 10MHz. As the OrangeCrab has a 48MHz system clock, a 6MHz clock signal can be generated using a 1:8 clock divider, simplifying the design and reducing delay / clock skew. The timing diagram also shows setup and hold time requirements for the data signal.
 
 [Figure: PCM1780 control interface timing diagram]
+
+![PCM1780 control interface timing diagram](notes/controlInterfaceTiming.png)
 
 The data to be sent will be crossing from a 48MHz clock domain into a 6MHz clock domain, but as the latter is derived from the former using logic, there is no risk of a change in phase and metastability can be avoided by holding the value stable in the faster domain for multiple clock cycles and buffering the value in the slower domain. In this design, the value can be left constant until a new value is set as the action of setting the attenuation value is idempotent and does not have a side-effect from being repeated.
 
@@ -270,17 +284,21 @@ The data to be sent will be crossing from a 48MHz clock domain into a 6MHz clock
 
 The CAN (Controller Area Network) bus is a differential serial bus used for communication between devices, typically in automotive applications due to its ability to withstand electromagnetic interference and wiring simplicity requiring only a twisted pair of wires common to all devices on the bus. The [Wikipedia page](https://en.wikipedia.org/wiki/CAN_bus) for the CAN bus provides an overview including key features of the protocol, however for timing and implementation specifics, the [Bosch CAN Specification 2.0](http://esd.cs.ucr.edu/webres/can20.pdf) and [Texas Instruments: Introduction to CAN](https://www.ti.com/lit/an/sloa101b/sloa101b.pdf) documents were used as reference material.
 
-The CAN bus is a multi-master bus, so any device can transmit at any time. In order to prevent collisions and loss of data, a form of arbitration is used to select which device has priority. This is done by assigning each message a unique ID, and the device with the lowest ID wins arbitration. This is inherent to the design of the CAN bus as transmitting a 0 is done by asserting the dominant state on the CANH and CANL signals and each device measures the state of the bus to determine if it should stop transmitting, so a device transmitting a recessive state will still be able to detect the dominant state. This is shown in Figure x.y [below], where device 0 has a lower ID than device 1 and so device 1 stops transmitting when it detects the dominant state on the bus.
+The CAN bus is a multi-master bus, so any device can transmit at any time. In order to prevent collisions and loss of data, a form of arbitration is used to select which device has priority. This is done by assigning each message a unique ID, and the device with the lowest ID wins arbitration. This is inherent to the design of the CAN bus as transmitting a 0 is done by asserting the dominant state on the CANH and CANL signals and each device measures the state of the bus to determine if it should stop transmitting, so a device transmitting a recessive state will still be able to detect the dominant state. This is shown in Figure x.y [below], where device A uses a lower ID than device B and so device B stops transmitting when it detects the dominant state on the bus at the red cross.
 
 [Figure: CAN bus arbitration]
+
+![CAN bus arbitration](notes/canArbitration.png)
 
 In this project, low-speed CAN is used as the data to be transferred between devices is a few bytes at a time, and limited by the student code on each StackSynth module. In addition, the length of the CAN bus is determined by how many StackSynth devices are chained together, resulting in ~15cm per module so electromagnetic interference is unlikely to be an issue. On the StackSynth FPGA Extension board, the CAN bus signalling is handled by a Microchip ATA6561 Transceiver, as detailed in the [following section](#ata6561-can-transceiver).
 
 Two key features of low-speed CAN are: a bit rate of 125k baud, resulting in ~8us per bit for propagation and sampling across the bus or 384 cycles at the 48MHz system clock of the OrangeCrab; and differential signalling, where the exact voltage levels of CANH and CANL are not important, but the polarity of the difference between the two signals (CANH - CANL) is used to determine the state of the bus, further reducing the impact of electromagnetic interference.
 
-An important requirement of all CAN variants is that each frame must be acknowledged by at least one other device on the bus, otherwise the transmitting device may choose to retransmit the frame indefinitely or enter an error state. In the case of the StackSynth module, this results in the user-program CAN transmit queue being full, and the program blocking when attempting to add a new transmit message to the queue. The ATA6561 Transceiver does not contain any logic for automatically acknowledging frames, so the ACK signal must be generated within the FPGA logic. This is done by checking the ID of the received frame against a CAN receive ID filter after masking with a filter ID mask, and then driving the bus to a dominant state during the ACK bit of the frame if the frame is valid. This is shown in Figure x.y [below], taken from [Figure 7. CAN Frame Format] of the Bosch CAN Specification 2.0 document.
+An important requirement of all CAN variants is that each frame must be acknowledged by at least one other device on the bus, otherwise the transmitting device may choose to retransmit the frame indefinitely or enter an error state. In the case of the StackSynth module, this results in the user-program CAN transmit queue being full, and the program blocking when attempting to add a new transmit message to the queue. The ATA6561 Transceiver does not contain any logic for automatically acknowledging frames, so the ACK signal must be generated within the FPGA logic. This is done by checking the ID of the received frame against a CAN receive ID filter after masking with a filter ID mask, and then driving the bus to a dominant state during the ACK bit of the frame if the frame is valid. Figure x.y, from "Section 3.1.1 Data Frame" of the Bosch CAN Specification 2.0 document, shows the ACK slot where a receiver transmits a dominant state overriding the transmitters recessive state.
 
-[Figure: CAN frame format showing ACK bit highlighted]
+[Figure: CAN frame format of ACK field]
+
+![CAN frame format of ACK field](notes/canAck.png)
 
 The CAN Specification also indicates that the bus should be sampled at 75% of the "bit time", or 6us into a bit for a 8us period in low-speed CAN. This precise timing is maintained by synchronising every device on the CAN bus with each incoming recessive to dominant transmission. This occurs at the start of each frame as well as throughout the frame, at least as often as every 10 bits due to the presence of stuffed bits, preventing a build-up of clock skew and errors in sampled bits.
 
@@ -290,9 +308,11 @@ The CAN protocol is a NRZ (Non Return-to-Zero) protocol, meaning consecutive bit
 
 $0000011110 \rightarrow 00000\textcolor{red}{1}1111\textcolor{red}{0}0$
 
-A complete CAN bus frame is shown [below] in Figure x.y, where the frame ID is xxx, and the frame contains xxx bytes of data. In the case of the StackSynth module, the data length is hardcoded to 8 bytes within the CAN helper library, with unused bytes being ignored by the receiving device.
+A complete CAN bus frame is shown in Figure x.y, from the [Wikipedia page on the CAN bus](https://en.wikipedia.org/wiki/CAN_bus), where the frame ID is 0x14 and the frame contains 1 byte of data. In the case of the StackSynth module, the data length is hardcoded to 8 bytes within the CAN helper library, with unused bytes being ignored by the receiving device.
 
 [Figure: CAN frame format]
+
+![CAN frame format](notes/canFrame.png)
 
 In addition to the frame ID, data length and data bytes, the CAN frame also contains a CRC (Cyclic Redundancy Check) field which allows for detection of errors in the received frame. This is calculated using the generator polynomial $x^15+x^14+x^10+x^8+x^7+x^4+x^3+1$ as prescribed in the [Bosch CAN Specification 2.0](http://esd.cs.ucr.edu/webres/can20.pdf) with the input sequence of the Start-Of-Frame, Frame ID, Control Field (ID extension bit, reserved bit and data length code) and Data Field. As described in the CAN specification, this can be implemented using a shift register with an XOR with `0x4599` when the next incoming bit is high. The CRC is then transmitted in the CRC field of the CAN frame, and the receiving device can calculate the CRC of the received frame and compare it to the received CRC to determine if the frame is valid. If the CRC is not valid, the frame is discarded and the receiving device does not acknowledge the frame.
 
@@ -302,22 +322,23 @@ The Microchip [ATA6561](https://www.microchip.com/en-us/product/ATA6561) ([datas
 
 [Figure: ATA6561 Functional Block Diagram]
 
+![ATA6561 Functional Block Diagram](notes/ata6561.png)
+
 The ATA6561 also provides protection to the CAN bus from the CAN controller in two key situations. First, if the `RXD` pin is driven high externally, such as an accidental logic-high output from the FPGA or a short-circuit to VCC, this represents a recessive state and would prevent a CAN controller from detecting a dominant state on the CAN bus, causing arbitration to fail. Second, if the `TXD` pin is driven low for longer than the `TXD dominant timeout`, the CANH and CANL pins are disconnected (high-impedance) as driving a constant dominant state on the CAN bus would block all other network communication. This timeout is reset when the `TXD` pin is driven to logic-high.
 
 The transceiver has 4 operating modes, however only `Normal` mode is used, as this allows for monitoring of the CAN bus via the RXD pin, and driving the CAN bus to the dominant state when TXD is driven low, such as for acknowledging a received frame. The other modes are `Unpowered`, `Standby` and `Silent`, which are either not useful in operation, or in the case of `Silent`, is not accessible on the ATA6561 by the user, and only occurs when an error is detected on the CAN bus. Finally, the ATA6561 is a clockless and combinatorial device, and can be treated as a direct connection from the FPGA to the CAN bus. The FPGA logic keeps track of bit timing, and drives the `TXD` pin as needed.
 
 # Analysis and Design
 
-> Examiners are just as interested in the process as the end result, include design decisions, the available options and reasons for particular choices (critical assessment). Explain trade-offs including those out of your control.
-
 This section presents a high-level overview of the design of the system, and details design decisions that apply to the system as a whole rather than a specific area of implementation. Changes that were made to the design during implementation are discussed in the [implementation](#implementation) section.
 
 Figure x.y [below] is a block diagram representation of the StackSynth FPGA Extension board including SoC and external Integrated Circuit components that are integral to the project function. Dotted lines represent analogue signals, which includes the stereo audio signals from the PCM1780 DAC, through the DS1881E digital potentiometer and through the TS482 amplifier and 3.5mm headphone port. Thinner solid lines are single bit digital signals, including clock signals and serial bit connections, while thicker solid lines are multi-bit digital signals or buses, including UART and the CSR bus. Later in the project, the VexRiscV CPU was replaced with a PicoRV32 CPU for testing a basic software implementation of interrupts, however the overall architecture of the system remained unchanged.
 
-![Figure: System Overview (Sideways to fill a page)](./system-overview.png)
-> Figure: System Overview (Sideways to fill a page)
+![System Architecture Overview](notes/system-overview.png)
 
 In Figure x.y, the `Wave Sample Generator Block` represents a conversion from settings controlled from the CPU via the CSR bus to the final output samples sent to the DAC. A key design decision within this block is the generation of sample values when required without the use of a large wave-table. The OrangeCrab has limited Block RAM and a large memory would be required to provide the resolution desired for phase to sine wave conversion, for example, using a 16-bit phase to index a table with 2^16 or 65536 entries would require 1049Kb of Block RAM, more than the 1008Kb available on the ECP5 model used. Instead, a larger phase accumulator can be used, allowing for more precise phase steps providing better accuracy as the error is smaller, and minor errors due to rounding are averaged out over multiple cycles, reducing the likelihood of audible glitches. This phase accumulator can then be truncated to 16 bits by ignoring the lower 8 bits and then used for sample generation.
+
+> Examiners are just as interested in the process as the end result, include design decisions, the available options and reasons for particular choices (critical assessment). Explain trade-offs including those out of your control.
 
 - TODO: More description on block diagram?
 
@@ -610,15 +631,17 @@ self.submodules.analyzer = LiteScopeAnalyzer(
 )
 ```
 
-The LiteScope Analyzer instance is then accessed from the host machine using the `litex_server` command to start a TCP server that connects to the UART converter, and the `litescope_cli` command to connect to the TCP server, select trigger signals/values, and dump the received waveform data to a VCD file. The created VCD file can be viewed using programs such as GTKWave, shown in Figure x.y with the waveform output of the `dacDriver` module.
-
-LiteScope Analyzer was used to verify the correct operation of the `AsyncFIFO` and `dacDriver` modules. Testing the `AsyncFIFO` module involved checking the correct transfer of values across the clock domain crossing as well as the assertion of the back-pressure and ready flag signals. Figure x.y shows the waveform VCD as viewed in GTKWave, with the LiteScope Analyzer sampling at 48MHz.
+The LiteScope Analyzer instance is then accessed from the host machine using the `litex_server` command to start a TCP server that connects to the UART converter, and the `litescope_cli` command to connect to the TCP server, select trigger signals/values, and dump the received waveform data to a VCD file. The created VCD file can be viewed using programs such as GTKWave. LiteScope Analyzer was used to verify the correct operation of the `AsyncFIFO` and `dacDriver` modules. Testing the `AsyncFIFO` module involved checking the correct transfer of values across the clock domain crossing as well as the assertion of the back-pressure and ready flag signals. Figure x.y shows the waveform VCD as viewed in GTKWave, with the LiteScope Analyzer sampling at 48MHz.
 
 [Figure: GTKWave screenshot of AsyncFIFO waveform]
+
+![GTKWave screenshot of AsyncFIFO waveform](notes/gtkwaveAsyncfifo.png)
 
 A similar process was used in verifying the 3 signal outputs of the `dacDriver` module. The waveform was captured starting with a rising edge of the left-right clock, and the resulting signals compared to the expected values from the datasheet, as seen in Figure x.y from the [DAC section](#pcm1780-dac). Figure x.z shows the waveform VCD as viewed in GTKWave, with the LiteScope Analyzer sampling at 48MHz.
 
 [Figure: GTKWave screenshot of DAC driver waveform]
+
+![GTKWave screenshot of DAC driver waveform](notes/gtkwaveDacdriver.png)
 
 ## Receiving CAN Frames
 
@@ -899,7 +922,7 @@ In the implementation of the `genWave` SystemVerilog module, the `cordic` module
 
 [Figure: PicoScope screenshot of waveform output without glitches]
 
-![PicoScope screenshot of waveform output without glitches](notes/cleanwavewave.png)
+![PicoScope screenshot of waveform output without glitches](notes/cleanwave.png)
 
 As the `cordic` module was no longer combinatorial, the `genWave` module would need to sample or capture the output once it is stable. The propagation delay of the `cordic` module was measured by using a counter to iterate through all 65536 input values, incrementing every 8 cycles, and then connecting the `i_saw` and `o_sin` signals to the LiteScope Analyzer, checking the time taken for the output to stabilise. The cocotb testbench is available in the project files at [modules/testPropagation.py](modules/testPropagation.py), and resulting waveform VCD file at [notes/testPropTiming.vcd](notes/testPropTiming.vcd).
 
@@ -1073,7 +1096,7 @@ The main benefit of the work completed in this project is the ability to extend 
 
 While working on the implementation of this project, possible avenues for further work were identified, specifically greater precision in target frequencies and the addition of software support for hardware interrupts to the embedded CPU.
 
-The wave generation block currently accepts integer format values for the target frequency of each oscillator, however this restricts the precision of the selectable frequencies, especially at lower frequencies where the changes in calculated phase step are greater. The phase step calculation can be adjusted to support a fixed point format where the input target frequency value is a power of two multiple (x2^n) of the desired target frequency, and then the phase step is shifted right to compensate for the scaling. A version of the `genWave` module using a 24.4 bit fixed point format was implemented, however when attempting to compile software for the SoC, any use of floating point values and operations caused the compile to fail due to missing library files, so this enhancement has been left as future work.
+The wave generation block currently accepts integer format values for the target frequency of each oscillator, however this restricts the precision of the selectable frequencies, especially at lower frequencies where the changes in calculated phase step are greater. The phase step calculation can be adjusted to support a fixed point format where the input target frequency value is a power of two multiple (x2^n) of the desired target frequency, and then the phase step is shifted right to compensate for the scaling. A version of the `genWave` module using a 24.4 bit fixed point format was implemented, however when attempting to compile software for the SoC, any use of floating point values and operations caused the compile to fail due to missing library files, so this enhancement has been left as future work. Preliminary research suggests that the `picolibc` setting for print and scan support may remove support for floating point values, as explained in the `picolibc` GitHub repository [printf documentation](https://github.com/picolibc/picolibc/blob/main/doc/printf.md).
 
 With an event source and event manager, the current implementation of the `can` module is correctly connected to the interrupt port of the embedded CPU and generated interrupt signals when requested from the SystemVerilog module using a pulse, however the demo software does not currently include the necessary setup to handle hardware interrupts as supported by the `VexRiscV` CPU. The addition of hardware interrupts and an interrupt handler would allow for more flexibility in the user software and may allow for running FreeRTOS on the OrangeCrab FPGA, bringing the experience of writing software for the SoC closer to that of the existing StackSynth module. Handling of an interrupt as soon as it occurs also reduces the chances of a second interrupt occurring before the first handler has finished running, which could cause the second interrupt to be missed if of the same type or an urgent task to be delayed.
 
