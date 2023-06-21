@@ -33,6 +33,7 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 - [List of Tables](#list-of-tables)
 - [List of Abbreviations](#list-of-abbreviations)
 - [Introduction](#introduction)
+  - [Report Structure](#report-structure)
 - [Background](#background)
   - [Requirements Capture](#requirements-capture)
   - [StackSynth Board](#stacksynth-board)
@@ -111,13 +112,22 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 
 # Introduction
 
-- TODO: Summarise the rest of the report, focus on rationale, aims, terms of reference, brief mention of what is to come/in each chapter, ie does it work or not
+The 3rd Year Embedded Systems course of the Electrical Engineering department at Imperial College London includes a coursework designed to teach students real-time programming in a resource constrained system. The scenario of the courseowrk is a music synthesiser where audio samples must be generated consistently to ensure audio without glitches.
 
-> High level problem statement / motivation. Outline the main problems your project addresses, and introduce the structure of the remaining report, what is covered in which chapters and how they relate to each other, but not in detail.
->
-> The first page is prime real estate and it's most important purpose is to answer the question "what is this thing" to a reasonably high technical level - make sure it's clear what it is that you have done & only really address that rather than the stuff you've added on to, which should be assumed knowledge in the introduction.
->
-> If you have a good example for a leading graphic of something relevant to the resulting problem (I'm doing compiling graphs, so I've got a graph alongside the code of that graph) then that's a good thing to have as again it really helps to answer "what is this thing"
+This project aims to extend the capabilities and performance of the existing educational platform as the microcontroller currently used in the coursework is limited to a small number of oscillators and basic audio effects. A key factor in the success of this project is that a student should be able to interact with the provided gateware in a similar manner to the existing coursework.
+
+This project provides code for the gateware needed to run user-written programs, receive communications from CAN protocol devices and produce audio waveforms consisting of 64 individual waves of specified frequencies, as well as demonstration software to control the provided gateware via CAN frames or direct control via a console interface.
+
+## Report Structure
+
+The report is structured as follows:
+
+- Chapter 2 - Background - Determines the project base and goals, and introduces aspects of the project that are pre-determined, including the FPGA used and external components present on the StackSynth Extension board
+- Chapter 3 - Analysis and Design - Lays out the architecture of the system and connections between modules
+- Chapter 4 - Implementation - Details the design decisions made during development and features of the project as completed
+- Chapter 5 - Testing and Results - Covers testing throughout the project used to verify functional correctness of the design and measure performance
+- Chapter 6 - Evaluation - Evaluates the project on progress against the identified objectives and areas that can be improved
+- Chapter 7 - Conclusion - Concludes the project, including insights into future work
 
 # Background
 
@@ -924,25 +934,16 @@ The current design is very high in resource utilisation when synthesised using Y
 
 # Conclusions and Further Work
 
-> Success? What was achieved? How could it be taken further with more time (maybe by another student)? Often this is work you did not have time to complete.
->
-> Identify positively, what is useful in your work, and honestly determine the limits of your work. The report buries what are the most significant achievements, outline them here, referring to sections as necessary to *avoid details here*.
+This report presented the available resources and implementation of an FPGA Accelerator for the StackSynth module, allowing for many more oscillators than is possible solely in the CPU of the Nucleo L432KC microcontroller. The shared use of computational logic reduces the resource requirements of the design and allows for the use of the OrangeCrab FPGA which is small enough to fit next to the main StackSynth module. Careful timing analysis of high speed signals using LiteScope Analyzer along with the PicoScope for longer-duration signals contributed to the protocol compatible function of the `canReceiver` and `dacDriver` modules.
 
-- Design choices made along the way and why maybe?
-- Difficult / clever parts of the project?
-- Why was it difficult?
-- How did you overcome it? (Use of LiteScope Analyser for very fast logic, and PicoScope for longer term signals)
-- Discovered / invented something novel?
-- What did you learn?
+The main beenfit of the work completed in this project is the ability to extend the current design with new modules while supporting software control of these new modules, as much of the benefit of LiteX comes from the automatic generation of pre-processor definitions and functions to ease communication with and control of external modules.
 
-- `genWave` block can be updated to use a fixed point format for target frequency input
-  - tested but not implemented in the final design as support for floating point operations was missing in the compiler, further work could be done on finding the missing header files to allow for higher frequency precision, to closer match note frequencies and allow for finer changes in oscillator frequency
-- Hardware interrupts rather than the current software interrupt polling method
-  - Allows for more immediate handling of the interrupt, reducing chances of an interrupt being missed
-  - Requires setting up an interrupt handler, possibly by setting the address of the handler in a specific register
-  - Not supported by `picorv32`, and not implemented in LiteX for `neorv32`, but should be possible for `vexriscv`
-  - With some stubs for interfacing with a timer, should be possible to run FreeRTOS on the OrangeCrab
-- Switching from basic program to FreeRTOS with tasks
+While working on the implementation of this project, possible avenues for further work were identified, specifically greater precision in target frequencies and the addition of software support for hardware interrupts to the embedded CPU.
+
+The wave generation block currently accepts integer format values for the target frequency of each oscillator, however this restricts the precision of the selectable frequencies, especially at lower frequencies where the changes in calculated phase step are greater. The phase step calculation can be adjusted to support a fixed point format where the input target frequency value is a power of two multiple (x2^n) of the desired target frequency, and then the phase step is shifted right to compensate for the scaling. A version of the `genWave` module using a 24.4 bit fixed point format was implemented, however when attempting to compile software for the SoC, any use of floating point values and operations caused the compile to fail due to missing library files, so this enhancement has been left as future work.
+
+With an event source and event manager, the current implementation of the `can` module is correctly connected to the interrupt port of the embedded CPU and generated interrupt signals when requested from the SystemVerilog module using a pulse, however the demo software does not currently include the necessary setup to handle hardware interrupts as supported by the `VexRiscV` CPU. The addition of hardware interrupts and an interrupt handler would allow for more flexibility in the user software and may allow for running FreeRTOS on the OrangeCrab FPGA, bringing the experience of writing software for the SoC closer to that of the existing StackSynth module. Handling of an interrupt as soon as it occurs also reduces the chances of a second interrupt occurring before the first handler has finished running, which could cause the second interrupt to be missed if of the same type or an urgent task to be delayed.
+
 - TODO: Volume control / amplification for low impedance headphones using the DS1881E digital potentiometer and TS482 Stereo Amplifier
 
 # User Guide
