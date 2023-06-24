@@ -8,8 +8,10 @@
 #include <generated/csr.h>
 #include <irq.h>
 #include <libbase/console.h>
+#include <libbase/i2c.h>
 #include <libbase/uart.h>
 
+#include "amp"
 #include "audio"
 #include "can"
 
@@ -106,6 +108,10 @@ static void help(void) {
 #endif
 #ifdef CSR_DAC_VOL_BASE
 	puts("volume             - Get / Set DAC Volume");
+#endif
+#ifdef CONFIG_HAS_I2C
+	puts("amp                - Get / Set AMP Settings");
+	puts("vol                - Get / Set AMP Volume");
 #endif
 #ifdef CSR_CAN_BASE
 	puts("can_id             - Get / Set CAN ID");
@@ -236,6 +242,45 @@ static void dac_vol_cmd(char **val) {
 		int value = (int)strtol(token, NULL, 0);
 		printf("Setting DAC volume to %d (of 128)\n", value);
 		dac_vol_volume_write(value);
+	}
+}
+#endif
+#ifdef CONFIG_HAS_I2C
+static void amp_cmd(char **val) {
+	char *token = get_token(val);
+	if (token == *val) {
+		amp_i2c temp;
+		if (!amp_read(temp)) {
+			printf("Failed to read AMP state\n");
+			return;
+		}
+		printf("AMP State: 0x%02X, 0x%02X, 0x%02X\n", temp.pot0, temp.pot1, temp.conf);
+	} else {
+		uint8_t pot0 = (uint8_t)strtol(token, NULL, 0);
+		uint8_t pot1 = (uint8_t)strtol(get_token(val), NULL, 0);
+		uint8_t conf = (uint8_t)strtol(get_token(val), NULL, 0);
+		printf("Setting AMP State to: 0x%02X, 0x%02X, 0x%02X\n", pot0, pot1, conf);
+		if (!amp_write({pot0, pot1, conf})) {
+			printf("Failed to write AMP state\n");
+		}
+	}
+}
+
+static void amp_vol_cmd(char **val) {
+	char *token = get_token(val);
+	amp_i2c temp;
+	if (!amp_read(temp)) {
+		printf("Failed to read AMP state\n");
+		return;
+	}
+	if (token == *val) {
+		printf("AMP volume is %d (of 63)\n", temp.pot0);
+	} else {
+		uint8_t vol = (uint8_t)strtol(token, NULL, 0);
+		printf("Setting AMP volume to %d (of 63)\n", vol);
+		if (!amp_write({vol, vol, temp.conf})) {
+			printf("Failed to write AMP state\n");
+		}
 	}
 }
 #endif
@@ -428,6 +473,12 @@ static void console_service(void) {
 #ifdef CSR_DAC_VOL_BASE
 	else if (strcmp(token, "volume") == 0)
 		dac_vol_cmd(&str);
+#endif
+#ifdef CONFIG_HAS_I2C
+	else if (strcmp(token, "amp") == 0)
+		amp_cmd(&str);
+	else if (strcmp(token, "vol") == 0)
+		amp_vol_cmd(&str);
 #endif
 #ifdef CSR_CAN_BASE
 	else if (strcmp(token, "can_id") == 0)
