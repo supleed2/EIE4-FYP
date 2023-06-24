@@ -261,45 +261,45 @@ class BaseSoC(SoCCore):
         # self.proptest = TestPropagation(platform = platform)
 
         # LiteScope Analyzer -----------------------------------------------------------------------
-        self.add_uartbone(name="debug_uart", baudrate=921600)
-        from litescope import LiteScopeAnalyzer
-        analyzer_signals = [
-            # self.proptest.i_saw,
-            # self.proptest.o_sin,
-            self.can.can_rx,
-            self.can.can_tx,
-            # self.dac_atten.atten.re,
-            # self.dac_atten.atten.storage,
-            # self.dac_atten.m_sel_n,
-            # self.dac_atten.m_clock,
-            # self.dac_atten.m_data,
-            self.audio.osc.re,
-            # self.audio.osc.storage,
-            self.audio.tf.re,
-            # self.audio.tf.storage,
-            self.audio.wav.re,
-            # self.audio.wav.storage,
-            self.audio.backpressure_48,
-            # self.audio.sample_48,
-            self.audio.audioready_48,
-            self.audio.readrequest_36,
-            # self.audio.sample_36,
-            self.audio.fifoempty_36,
-            self.audio.dac_lrck,
-            self.audio.dac_bck,
-            self.audio.dac_data,
-        ]
-        from math import ceil, floor
-        analyzer_depth = floor(190_000 / ((ceil(sum([s.nbits for s in analyzer_signals]) / 16)) * 16))
-        self.submodules.analyzer = LiteScopeAnalyzer(
-            analyzer_signals,
-            depth        = analyzer_depth,
-            # clock_domain = "dac",
-            clock_domain = "sys",
-            # samplerate   = 36.92e6, # Actual clock frequency of DAC clock domain
-            samplerate   = sys_clk_freq,
-            csr_csv      = "analyzer.csv",
-        )
+        # self.add_uartbone(name="debug_uart", baudrate=921600)
+        # from litescope import LiteScopeAnalyzer
+        # analyzer_signals = [
+        #     # self.proptest.i_saw,
+        #     # self.proptest.o_sin,
+        #     self.can.can_rx,
+        #     self.can.can_tx,
+        #     # self.dac_atten.atten.re,
+        #     # self.dac_atten.atten.storage,
+        #     # self.dac_atten.m_sel_n,
+        #     # self.dac_atten.m_clock,
+        #     # self.dac_atten.m_data,
+        #     self.audio.osc.re,
+        #     # self.audio.osc.storage,
+        #     self.audio.tf.re,
+        #     # self.audio.tf.storage,
+        #     self.audio.wav.re,
+        #     # self.audio.wav.storage,
+        #     self.audio.backpressure_48,
+        #     # self.audio.sample_48,
+        #     self.audio.audioready_48,
+        #     self.audio.readrequest_36,
+        #     # self.audio.sample_36,
+        #     self.audio.fifoempty_36,
+        #     self.audio.dac_lrck,
+        #     self.audio.dac_bck,
+        #     self.audio.dac_data,
+        # ]
+        # from math import ceil, floor
+        # analyzer_depth = floor(190_000 / ((ceil(sum([s.nbits for s in analyzer_signals]) / 16)) * 16))
+        # self.submodules.analyzer = LiteScopeAnalyzer(
+        #     analyzer_signals,
+        #     depth        = analyzer_depth,
+        #     # clock_domain = "dac",
+        #     clock_domain = "sys",
+        #     # samplerate   = 36.92e6, # Actual clock frequency of DAC clock domain
+        #     samplerate   = sys_clk_freq,
+        #     csr_csv      = "analyzer.csv",
+        # )
 
 # Build --------------------------------------------------------------------------------------------
 
