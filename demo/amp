@@ -1,0 +1,33 @@
+#include <generated/csr.h>
+#include <libbase/i2c.h>
+#include <stdint.h>
+
+#pragma once
+
+// Struct Definition
+
+struct amp_i2c {
+	uint8_t pot0;
+	uint8_t pot1;
+	uint8_t conf;
+};
+
+// Function Declarations
+
+bool amp_init(void);
+
+bool amp_read(amp_i2c &);
+
+bool amp_read_pot0(uint8_t &);
+
+bool amp_read_pot1(uint8_t &);
+
+bool amp_read_conf(uint8_t &);
+
+bool amp_write(amp_i2c value);
+
+bool amp_write_pot0(uint8_t value);
+
+bool amp_write_pot1(uint8_t value);
+
+bool amp_write_conf(uint8_t value);
