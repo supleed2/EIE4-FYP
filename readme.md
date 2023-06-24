@@ -13,7 +13,7 @@
 - [FreeRTOS Quick Start Guide](https://www.freertos.org/FreeRTOS-quick-start-guide.html)
   - [Run FreeRTOS and multitasking on VexRiscv](https://hackmd.io/@oscarshiang/freertos_on_riscv)
   - [Run FreeRTOS on VexRiscv and Measure/Tweak context switch overhead](https://hackmd.io/@chiangkd/FreeRTOS-on-VexRiscv)
-  - [kole-huang/picorvv32_soc - GitHub](https://github.com/kole-huang/picorv32_soc), possible base for FreeRTOS port on PicoRV32
+  - [kole-huang/picorv32_soc - GitHub](https://github.com/kole-huang/picorv32_soc), possible base for FreeRTOS port on PicoRV32
 - CAN Bus Implementation
   - [CAN bus: Base Frame Format - Wikipedia](https://en.wikipedia.org/wiki/CAN_bus#Base_frame_format)
   - [Texas Instruments: Introduction to CAN](https://www.ti.com/lit/an/sloa101b/sloa101b.pdf)
@@ -58,11 +58,11 @@
   - [CDC with an Async FIFO - ZipCPU](https://zipcpu.com/blog/2018/07/06/afifo.html)
     - [Source on GitHub - afifo.v](https://github.com/ZipCPU/website/blob/master/examples/afifo.v)
   - [CDC with an FPGA - NandLand](https://nandland.com/lesson-14-crossing-clock-domains/)
-    - Contained recommendations on signals, including using Almost-Empty/Full signals to avoid situations where the signal is invalid due to signal propegation & timing requirements
+    - Contained recommendations on signals, including using Almost-Empty/Full signals to avoid situations where the signal is invalid due to signal propagation & timing requirements
 - [LiteScope GitHub Repository](https://github.com/enjoy-digital/litescope) - Scope to record signals internal to the FPGA Fabric
   - [GitHub Wiki - Use LiteScope To Debug A SoC](https://github.com/enjoy-digital/litex/wiki/Use-LiteScope-To-Debug-A-SoC)
   - [litex-buildenv wiki on using LiteX](https://github.com/timvideos/litex-buildenv/wiki/Notes-and-Tips#litescope)
-  - [Posible irc discusions on LiteScope?](https://freenode.irclog.whitequark.org/litex/search?q=litescope)
+  - [Possible irc discussions on LiteScope?](https://freenode.irclog.whitequark.org/litex/search?q=litescope)
 
 ### Cool Things To Note
 
@@ -130,3 +130,4 @@
 - [Reddit question on riscv core on fpga](https://www.reddit.com/r/RISCV/comments/t1raxb/is_it_possible_to_build_a_riscv_core_on_fpga/)
 - [linux-on-litex-vexriscv/orangecrab_with_enc28j60_on_spi.md](https://github.com/niw/linux-on-litex-vexriscv/blob/add_enc28j60_to_orange_crab/orangecrab_with_enc28j60_on_spi.md)
 - [Previous paper using LiteX](https://www.martin-schreiber.info/data/student_projects/BA_2021_martin_troiber.pdf)
+- [Example instantiating DP16KD on ECP5 directly](https://github.com/skristiansson/wb_sdram_ctrl/blob/master/rtl/verilog/dpram_ecp5.v)
