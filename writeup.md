@@ -20,7 +20,9 @@ Standard Template is on Intranet
 
 # Acknowledgements
 
-I would like to thank Dr Ed Stott for his time and patience in the many meetings it took to discuss this project, as well as his guidance in architectural decisions that impacted the entire project. Without this insight, much more time may have been spend investigating alternatives and this project may not have reached a Proof-of-Concept stage that is useful for future students of the 3rd Year Embedded Systems module..
+I would like to thank Dr Ed Stott for his time and patience in the many meetings it took to discuss this project, as well as his guidance in architectural decisions that impacted the entire project. Without this insight, much more time may have been spend investigating alternatives and this project may not have reached a Proof-of-Concept stage that is useful for future students of the 3rd Year Embedded Systems module.
+
+I would also like to thank my friends and family for their support and encouragement throughout the project, especially my peers who stayed up late with me as we worked on our projects together.
 
 # Abstract
 
@@ -82,9 +84,15 @@ The API for controlling the custom SystemVerilog logic has been designed to be s
 
 # List of Figures
 
+TODO
+
 # List of Listings
 
+TODO
+
 # List of Tables
+
+TODO
 
 # List of Abbreviations
 
@@ -137,7 +145,7 @@ The report is structured as follows:
 - **Chapter 4 - Implementation** - Details the design decisions made during development and features of the project as completed
 - **Chapter 5 - Testing and Results** - Covers testing throughout the project used to verify functional correctness of the design and measure performance
 - **Chapter 6 - Evaluation** - Evaluates the project on progress against the identified objectives and areas that can be improved
-- **Chapter 7 - Conclusion** - Concludes the project, including insights into future work
+- **Chapter 7 - Conclusions** - Concludes the project, including insights into future work
 
 # Background
 
@@ -305,7 +313,7 @@ The CAN protocol is a NRZ (Non Return-to-Zero) protocol, meaning consecutive bit
 
 [Listing: Bit stuffing example]
 
-$0000011110 \rightarrow 00000\textcolor{red}{1}1111\textcolor{red}{0}0$
+$0000011110 \rightarrow 00000{red}{1}1111{red}{0}0$
 
 A complete CAN bus frame is shown in Figure x.y, from the [Wikipedia page on the CAN bus](https://en.wikipedia.org/wiki/CAN_bus), where the frame ID is 0x14 and the frame contains 1 byte of data. In the case of the StackSynth module, the data length is hardcoded to 8 bytes within the CAN helper library, with unused bytes being ignored by the receiving device.
 
@@ -1062,16 +1070,16 @@ fatal error: gnu/stubs-ilp32.h: No such file or directory
     8 | # include <gnu/stubs-ilp32.h>
 ```
 
-- TODO: Measure SNR and fill in
+And finally, a measure of the performance improvement in audio quality between the StackSynth and FPGA Extension boards is the SNR (Signal-to-Noise Ratio) of the audio output as a higher SNR would result in a lower noise floor and clearer audio for the same signal amplitude. Table x.y contains the frequency, SNR and THD results for the StackSynth board and the FPGA Extension board when using a target frequency of 3520Hz (A7), each using 500 samples in the measurement. The screenshots of the PicoScope measurements are included in Appendix x.y.
 
-Finally, a useful measure of the performance improvement in audio quality between the StackSynth and FPGA Extension boards is the SNR (Signal-to-Noise Ratio) of the audio output as a higher SNR would result in a lower noise floor and clearer audio. As shown in Table x.y, the average measured SNR of the StackSynth board was ??.? dB and of the FPGA Extension board was ??.? dB, showing a significant improvement in audio quality. The screenshots of the PicoScope measurements are included in Appendix x.y.
+The results show a small but measurable improvement in SND as well as THD, while the frequency is slightly further from the target on the FPGA. Overall the audio performance of a single oscillator is similar, however the FPGA accelerator is capable of many more oscillators simultaneously.
 
-[Table: SNR of StackSynth and FPGA Extension boards]
+[Table: SNR and THD of StackSynth and FPGA Extension boards]
 
-| Board          | SNR (dB) |
-| -------------- | -------- |
-| StackSynth     | ??.??    |
-| FPGA Extension | ??.??    |
+| Board          | Frequency (Hz) | SNR (dBc) | THD (%) |
+| -------------- | -------------- | --------- | ------- |
+| StackSynth     | 3520.29        | 24.48     | 2.71    |
+| FPGA Extension | 3520.60        | 25.18     | 2.12    |
 
 # Evaluation
 
