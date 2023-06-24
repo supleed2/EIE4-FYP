@@ -202,6 +202,11 @@ class BaseSoC(SoCCore):
 
         # GPIO Pins --------------------------------------------------------------------------------
         platform.add_extension([
+            ("i2c", 0,
+                Subsignal("scl", Pins("C9"), Misc("PULLMODE=UP")), # IO_SCL
+                Subsignal("sda", Pins("C10"), Misc("PULLMODE=UP")), # IO_SDA
+                IOStandard("LVCMOS33")
+            ),
             ("can", 0,
                 Subsignal("tx", Pins("J2")), # IO_13
                 Subsignal("rx", Pins("H2")), # IO_12
@@ -246,6 +251,10 @@ class BaseSoC(SoCCore):
         #     platform = platform,
         #     pads     = platform.request("dac_ctrl")
         # )
+
+        # Volume Control ---------------------------------------------------------------------------
+        from litex.soc.cores.bitbang import I2CMaster
+        self.i2c = I2CMaster(pads = platform.request("i2c"))
 
         # Propagation Delay Test -------------------------------------------------------------------
         # from modules.testPropagation import TestPropagation
