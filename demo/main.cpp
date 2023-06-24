@@ -274,11 +274,12 @@ static void amp_vol_cmd(char **val) {
 		return;
 	}
 	if (token == *val) {
-		printf("AMP volume is %d (of 63)\n", temp.pot0);
+		printf("AMP volume is %d (of 63)\n", 63 - temp.pot0);
 	} else {
 		uint8_t vol = (uint8_t)strtol(token, NULL, 0);
 		printf("Setting AMP volume to %d (of 63)\n", vol);
-		if (!amp_write({vol, vol, temp.conf})) {
+		uint8_t v = 63u - vol;
+		if (!amp_write({v, v, temp.conf})) {
 			printf("Failed to write AMP state\n");
 		}
 	}
