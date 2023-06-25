@@ -106,8 +106,8 @@ class _CRGSDRAM(LiteXModule):
         pll.register_clkin(clk48, 48e6)
         pll.create_clkout(self.cd_sys2x_i, 2*sys_clk_freq)
         pll.create_clkout(self.cd_init, 24e6)
-        pll.create_clkout(self.cd_usb_48, 48e6)
-        pll.create_clkout(self.cd_usb_12, 12e6)
+        pll.create_clkout(self.cd_usb_48, 48e6, with_reset=False)
+        pll.create_clkout(self.cd_usb_12, 12e6, with_reset=False)
         self.specials += [
             Instance("ECLKBRIDGECS",
                 i_CLK0   = self.cd_sys2x_i.clk,
