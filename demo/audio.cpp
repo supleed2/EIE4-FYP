@@ -5,7 +5,7 @@
 #ifdef CSR_AUDIO_BASE
 // Set all oscillators to (0Hz, sawtooth)
 void reset_audio(void) {
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 32; i++) {
 		audio_osc_write(i);
 		audio_tf_write(0);
 		audio_wav_write(0);

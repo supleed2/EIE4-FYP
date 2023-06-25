@@ -355,18 +355,18 @@ static void can_watch_cmd() {
 const char *notes[85] = {"None", "C1", "C1#", "D1", "D1#", "E1", "F1", "F1#", "G1", "G1#", "A1", "A1#", "B1", "C2", "C2#", "D2", "D2#", "E2", "F2", "F2#", "G2", "G2#", "A2", "A2#", "B2", "C3", "C3#", "D3", "D3#", "E3", "F3", "F3#", "G3", "G3#", "A3", "A3#", "B3", "C4", "C4#", "D4", "D4#", "E4", "F4", "F4#", "G4", "G4#", "A4", "A4#", "B4", "C5", "C5#", "D5", "D5#", "E5", "F5", "F5#", "G5", "G5#", "A5", "A5#", "B5", "C6", "C6#", "D6", "D6#", "E6", "F6", "F6#", "G6", "G6#", "A6", "A6#", "B6", "C7", "C7#", "D7", "D7#", "E7", "F7", "F7#", "G7", "G7#", "A7", "A7#", "B7"};
 const uint32_t freqs[85] = {0, 33, 35, 37, 39, 41, 44, 46, 49, 52, 55, 58, 62, 65, 69, 73, 78, 82, 87, 93, 98, 104, 110, 117, 123, 131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247, 262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494, 523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047, 1109, 1175, 1245, 1319, 1397, 1480, 1568, 1661, 1760, 1865, 1976, 2093, 2217, 2349, 2489, 2637, 2794, 2960, 3136, 3322, 3520, 3729, 3951};
 static void can_listen_cmd() {
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 32; i++) {
 		set_wave(i, WAVE_SINE);
 	}
 	bool active_notes[85] = {0};
-	uint32_t active_osc[64] = {0};
+	uint32_t active_osc[32] = {0};
 	uint32_t active_oscs = 0;
 	while (true) {
 		can_frame frame = can_read();
 		switch (frame.data[0]) {
 			case 'P': {
 				uint32_t note = (frame.data[1] - 1) * 12 + frame.data[2];
-				if (active_notes[note] || active_oscs == 64) // ALready active or all oscillators in use, ignore
+				if (active_notes[note] || active_oscs == 32) // ALready active or all oscillators in use, ignore
 					break;
 				active_notes[note] = true;			// Mark note as active
 				active_osc[active_oscs] = note;		// Set oscillator to note
@@ -416,7 +416,7 @@ static void can_listen_cmd() {
 	done:
 		if (readchar_nonblock()) {
 			getchar();
-			for (int i = 0; i < 64; i++) {
+			for (int i = 0; i < 32; i++) {
 				audio(i, WAVE_SAWTOOTH, 0);
 			}
 			return;
