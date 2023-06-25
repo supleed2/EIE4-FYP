@@ -79,6 +79,8 @@ class _CRGSDRAM(LiteXModule):
         self.cd_sys2x    = ClockDomain()
         self.cd_sys2x_i  = ClockDomain()
         self.cd_dac      = ClockDomain() # Custom clock domain for PCM1780 DAC
+        self.cd_usb_12   = ClockDomain()
+        self.cd_usb_48   = ClockDomain()
 
         # # #
 
@@ -104,7 +106,8 @@ class _CRGSDRAM(LiteXModule):
         pll.register_clkin(clk48, 48e6)
         pll.create_clkout(self.cd_sys2x_i, 2*sys_clk_freq)
         pll.create_clkout(self.cd_init, 24e6)
-        pll.create_clkout(self.cd_dac, 36.864e6) # Create 36.864 MHz Clock for PCM1780 (48kHz fs * 768 as in datasheet)
+        pll.create_clkout(self.cd_usb_48, 48e6)
+        pll.create_clkout(self.cd_usb_12, 12e6)
         self.specials += [
             Instance("ECLKBRIDGECS",
                 i_CLK0   = self.cd_sys2x_i.clk,
@@ -123,16 +126,23 @@ class _CRGSDRAM(LiteXModule):
             AsyncResetSynchronizer(self.cd_sys, ~pll.locked | self.reset),
         ]
 
+        # DAC PLL
+        dac_pll = ECP5PLL()
+        self.submodules += dac_pll
+        self.comb += dac_pll.reset.eq(~por_done | ~rst_n | self.rst)
+        dac_pll.register_clkin(clk48, 48e6)
+        dac_pll.create_clkout(self.cd_dac, 36.864e6, margin = 0.0002) # Create 36.864 MHz Clock for PCM1780 (48kHz fs * 768 as in datasheet)
+
         # USB PLL
-        if with_usb_pll:
-            self.cd_usb_12 = ClockDomain()
-            self.cd_usb_48 = ClockDomain()
-            usb_pll = ECP5PLL()
-            self.submodules += usb_pll
-            self.comb += usb_pll.reset.eq(~por_done)
-            usb_pll.register_clkin(clk48, 48e6)
-            usb_pll.create_clkout(self.cd_usb_48, 48e6)
-            usb_pll.create_clkout(self.cd_usb_12, 12e6)
+        # if with_usb_pll:
+        #     self.cd_usb_12 = ClockDomain()
+        #     self.cd_usb_48 = ClockDomain()
+        #     usb_pll = ECP5PLL()
+        #     self.submodules += usb_pll
+        #     self.comb += usb_pll.reset.eq(~por_done)
+        #     usb_pll.register_clkin(clk48, 48e6)
+        #     usb_pll.create_clkout(self.cd_usb_48, 48e6)
+        #     usb_pll.create_clkout(self.cd_usb_12, 12e6)
 
         # FPGA Reset (press usr_btn for 1 second to fallback to bootloader)
         reset_timer = WaitTimer(int(48e6))
