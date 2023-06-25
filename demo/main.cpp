@@ -119,7 +119,7 @@ static void help(void) {
 	puts("can_read           - Receive CAN Frames and print (delay in s)");
 	puts("can_watch          - Watch CAN Frames at 2Hz");
 #ifdef CSR_AUDIO_BASE
-	puts("can_listen         - Play CAN Frames as Audio");
+	puts("can_listen         - Play CAN Frames as Audio (-v for verbose)");
 #endif
 #endif
 }
@@ -354,7 +354,13 @@ static void can_watch_cmd() {
 #ifdef CSR_AUDIO_BASE
 const char *notes[85] = {"None", "C1", "C1#", "D1", "D1#", "E1", "F1", "F1#", "G1", "G1#", "A1", "A1#", "B1", "C2", "C2#", "D2", "D2#", "E2", "F2", "F2#", "G2", "G2#", "A2", "A2#", "B2", "C3", "C3#", "D3", "D3#", "E3", "F3", "F3#", "G3", "G3#", "A3", "A3#", "B3", "C4", "C4#", "D4", "D4#", "E4", "F4", "F4#", "G4", "G4#", "A4", "A4#", "B4", "C5", "C5#", "D5", "D5#", "E5", "F5", "F5#", "G5", "G5#", "A5", "A5#", "B5", "C6", "C6#", "D6", "D6#", "E6", "F6", "F6#", "G6", "G6#", "A6", "A6#", "B6", "C7", "C7#", "D7", "D7#", "E7", "F7", "F7#", "G7", "G7#", "A7", "A7#", "B7"};
 const uint32_t freqs[85] = {0, 33, 35, 37, 39, 41, 44, 46, 49, 52, 55, 58, 62, 65, 69, 73, 78, 82, 87, 93, 98, 104, 110, 117, 123, 131, 139, 147, 156, 165, 175, 185, 196, 208, 220, 233, 247, 262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494, 523, 554, 587, 622, 659, 698, 740, 784, 831, 880, 932, 988, 1047, 1109, 1175, 1245, 1319, 1397, 1480, 1568, 1661, 1760, 1865, 1976, 2093, 2217, 2349, 2489, 2637, 2794, 2960, 3136, 3322, 3520, 3729, 3951};
-static void can_listen_cmd() {
+static void can_listen_cmd(char **val) {
+	char *token = get_token(val);
+	bool verbose = false;
+	if (strcmp(token, "-v") == 0) {
+		printf("Verbose mode: debug messages will be printed");
+		verbose = true;
+	}
 	for (int i = 0; i < 32; i++) {
 		set_wave(i, WAVE_SINE);
 	}
@@ -371,7 +377,8 @@ static void can_listen_cmd() {
 				active_notes[note] = true;			// Mark note as active
 				active_osc[active_oscs] = note;		// Set oscillator to note
 				set_freq(active_oscs, freqs[note]); // Set oscillator frequency
-				printf("Playing note %s (%d) on oscillator %d\n", notes[note], note, active_oscs);
+				if (verbose)
+					printf("Playing note %s (%d) on oscillator %d\n", notes[note], note, active_oscs);
 				active_oscs++;
 				break;
 			}
@@ -380,31 +387,38 @@ static void can_listen_cmd() {
 				if (active_notes[note] == false) { // Not active, ignore
 					break;
 				} else if (true) {
-					printf("Finding note %s (%d)\n", notes[note], note);		   // Debug
-					active_notes[note] = false;									   // Mark note as inactive
-					active_oscs--;												   // Decrement active oscillators
-					if (note == active_osc[active_oscs]) {						   // Note is last active
-						active_osc[active_oscs] = 0;							   // Clear oscillator
-						set_freq(active_oscs, 0);								   // Set frequency to 0
-						printf("Stopping last note %s (%d)\n", notes[note], note); // Debug
+					if (verbose)
+						printf("Finding note %s (%d)\n", notes[note], note); // Debug
+					active_notes[note] = false;								 // Mark note as inactive
+					active_oscs--;											 // Decrement active oscillators
+					if (note == active_osc[active_oscs]) {					 // Note is last active
+						active_osc[active_oscs] = 0;						 // Clear oscillator
+						set_freq(active_oscs, 0);							 // Set frequency to 0
+						if (verbose)
+							printf("Stopping last note %s (%d)\n", notes[note], note); // Debug
 						break;
-					}																// Note is not last active
-					printf("Note %s (%d) is not last active\n", notes[note], note); // Debug
-					for (uint32_t i = 0; i <= active_oscs; i++) {					// Find note
-						printf("Checking oscillator %d\n", i);						// Debug
-						if (note != active_osc[i]) {								// Not this oscillator
-							printf("Not in oscillator %d\n", i);					// Debug
+					} // Note is not last active
+					if (verbose)
+						printf("Note %s (%d) is not last active\n", notes[note], note); // Debug
+					for (uint32_t i = 0; i <= active_oscs; i++) {						// Find note
+						if (verbose)
+							printf("Checking oscillator %d\n", i); // Debug
+						if (note != active_osc[i]) {			   // Not this oscillator
+							if (verbose)
+								printf("Not in oscillator %d\n", i); // Debug
 							continue;
-						}													  // Found note
-						uint32_t swapped_note = active_osc[active_oscs];	  // Get last active note
-						set_freq(i, freqs[swapped_note]);					  // Set frequency of oscillator to last active note
-						active_osc[i] = swapped_note;						  // Set oscillator to last active note
-						set_freq(active_oscs, 0);							  // Set last oscillator to 0
-						active_osc[active_oscs] = 0;						  // Clear last active note
-						printf("Stopping note %s (%d)\n", notes[note], note); // Debug
-						goto done;											  // Done
+						}												 // Found note
+						uint32_t swapped_note = active_osc[active_oscs]; // Get last active note
+						set_freq(i, freqs[swapped_note]);				 // Set frequency of oscillator to last active note
+						active_osc[i] = swapped_note;					 // Set oscillator to last active note
+						set_freq(active_oscs, 0);						 // Set last oscillator to 0
+						active_osc[active_oscs] = 0;					 // Clear last active note
+						if (verbose)
+							printf("Stopping note %s (%d)\n", notes[note], note); // Debug
+						goto done;												  // Done
 					}
-					printf("Note up for note %s not found\n", notes[note]); // Error
+					if (verbose)
+						printf("Note up for note %s not found\n", notes[note]); // Error
 					break;
 				}
 			}
@@ -492,7 +506,7 @@ static void console_service(void) {
 		can_watch_cmd();
 #ifdef CSR_AUDIO_BASE
 	else if (strcmp(token, "can_listen") == 0)
-		can_listen_cmd();
+		can_listen_cmd(&str);
 #endif
 #endif
 	prompt();
