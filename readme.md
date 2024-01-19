@@ -7,3 +7,5 @@ StackSynth is an educational synthesizer platform based on the STM32L432, used i
 The goal of this project was to create the SystemVerilog modules and code for an FPGA-based extension module for StackSynth, to increase the audio ability and performance of the synthesizer while providing future Embedded Systems students an opportunity to develop code for an integrated [VexRiscV](https://github.com/SpinalHDL/VexRiscv) RISC-V System-on-Chip.
 
 Notes taken during this project primarily consist of links for useful reading and reference materials, and is available in [this document](./notes/readme.md).
+
+A second branch [`report`](https://github.com/supleed2/EIE4-FYP/tree/report) also contains presentation materials and draft report notes.
